@@ -1,21 +1,36 @@
-// src/auth/dto/register.dto.ts
+import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
-// En lugar de extender CreateUserDto, definimos la misma estructura
-// para evitar problemas de tipado al pasar entre servicios
 export class RegisterDto {
+  @ApiProperty({
+    example: 'Juan',
+    description: 'Nombre del usuario',
+  })
   @IsNotEmpty()
   @IsString()
   name: string;
 
+  @ApiProperty({
+    example: 'Pérez',
+    description: 'Apellido del usuario',
+  })
   @IsNotEmpty()
   @IsString()
   lastName: string;
 
+  @ApiProperty({
+    example: 'juan@example.com',
+    description: 'Correo electrónico único',
+  })
   @IsNotEmpty()
   @IsEmail()
   email: string;
 
+  @ApiProperty({
+    example: '123456',
+    description: 'Contraseña (mínimo 6 caracteres)',
+    minLength: 6,
+  })
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
