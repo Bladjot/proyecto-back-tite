@@ -1,11 +1,8 @@
-// src/users/schemas/user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, HydratedDocument } from 'mongoose';
 
-// Para tener mejor tipado con MongoDB:
-export interface UserDocument extends User, Document {
-  id: string; // Mongoose crea un getter 'id' que devuelve el _id como string
-}
+// Tipo de documento de usuario
+export type UserDocument = HydratedDocument<User>;
 
 @Schema({
   timestamps: true,
@@ -15,6 +12,7 @@ export interface UserDocument extends User, Document {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
+      delete ret.password; // 👈 ocultamos password
       return ret;
     },
   },
@@ -32,8 +30,11 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ default: 'user' }) // 'admin' o 'user'
-  role: string;
+  @Prop({ type: [String], default: ['cliente'] })
+  roles: string[];
+
+  @Prop({ type: [String], default: [] })
+  permisos: string[];
 
   @Prop({ default: true })
   isActive: boolean;
@@ -41,7 +42,6 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Añadir un virtual 'id' para acceso más fácil al _id como string
 UserSchema.virtual('id').get(function () {
   return this._id.toHexString();
 });

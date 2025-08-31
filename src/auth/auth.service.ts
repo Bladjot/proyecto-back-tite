@@ -4,7 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { CreateUserDto } from 'src/users/schemas/dto/create-user.dto';
+import { CreateUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -30,15 +30,24 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const payload = { email: user.email, sub: user.id, role: user.role };
+    // 👇 arreglado con cast a any
+    const userId = (user as any).id || user._id?.toString();
+
+    const payload = { 
+      email: user.email, 
+      sub: userId, 
+      roles: user.roles || ['cliente'], 
+      permisos: user.permisos || [] 
+    };
 
     return {
       user: {
-        id: user.id,
+        id: userId,
         email: user.email,
         name: user.name,
         lastName: user.lastName,
-        role: user.role,
+        roles: user.roles || ['cliente'],
+        permisos: user.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
     };
@@ -51,16 +60,21 @@ export class AuthService {
       lastName: registerDto.lastName,
       email: registerDto.email,
       password: registerDto.password,
+      roles: ['cliente'],   // 👈 rol por defecto
+      permisos: [],         // 👈 sin permisos iniciales
     };
 
     const newUser = await this.usersService.create(createUserDto);
     const user = newUser.toObject ? newUser.toObject() : newUser;
-    const userId = user.id || user._id?.toString();
+
+    // 👇 arreglado con cast a any
+    const userId = (user as any).id || user._id?.toString();
 
     const payload = {
       email: user.email,
       sub: userId,
-      role: user.role,
+      roles: user.roles || ['cliente'],
+      permisos: user.permisos || [],
     };
 
     return {
@@ -69,7 +83,8 @@ export class AuthService {
         email: user.email,
         name: user.name,
         lastName: user.lastName,
-        role: user.role,
+        roles: user.roles || ['cliente'],
+        permisos: user.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
     };
@@ -80,7 +95,7 @@ export class AuthService {
     return this.usersService.findOne(userId);
   }
 
-  // 🔑 Login con Google (nuevo)
+  // 🔑 Login con Google
   async googleLogin(googleUser: any) {
     if (!googleUser) {
       throw new UnauthorizedException('Error en autenticación con Google');
@@ -95,8 +110,9 @@ export class AuthService {
         name: googleUser.firstName || 'Google',
         lastName: googleUser.lastName || 'User',
         email: googleUser.email,
-        password: 'google-auth', // password dummy
-        role: 'user',
+        password: 'google-auth', // 👈 password dummy
+        roles: ['user'],         // 👈 rol por defecto
+        permisos: [],
         isActive: true,
       };
 
@@ -105,13 +121,16 @@ export class AuthService {
 
     // 3. Convertir a objeto plano si es un Document de Mongoose
     const plainUser = user.toObject ? user.toObject() : user;
-    const userId = plainUser.id || plainUser._id?.toString();
 
-    // 4. Generar JWT propio
+    // 👇 arreglado con cast a any
+    const userId = (plainUser as any).id || plainUser._id?.toString();
+
+    // 4. Generar JWT con roles y permisos
     const payload = {
       email: plainUser.email,
       sub: userId,
-      role: plainUser.role,
+      roles: plainUser.roles || ['user'],
+      permisos: plainUser.permisos || [],
     };
 
     return {
@@ -120,7 +139,8 @@ export class AuthService {
         email: plainUser.email,
         name: plainUser.name,
         lastName: plainUser.lastName,
-        role: plainUser.role,
+        roles: plainUser.roles || ['user'],
+        permisos: plainUser.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
     };
