@@ -1,0 +1,9 @@
+[
+  {
+    "id_usuario": "usuario_id_1",
+    "token": "token_verificacion_123",
+    "expira_en": "2024-06-01T00:00:00Z",
+    "consumido_en": null,
+    "creado_en": "2024-05-01T12:00:00Z"
+  }
+]

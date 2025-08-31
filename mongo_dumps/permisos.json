@@ -1,0 +1,74 @@
+[
+  {
+    "codigo": "eliminar_usuario",
+    "descripcion": "Permite eliminar usuarios",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "ver_reportes",
+    "descripcion": "Permite ver reportes del sistema",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "editar_perfil",
+    "descripcion": "Permite modificar datos personales del perfil",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "cambiar_foto_perfil",
+    "descripcion": "Permite subir o cambiar la imagen de perfil",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "cambiar_contraseña",
+    "descripcion": "Permite actualizar la clave de acceso",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "configurar_notificaciones",
+    "descripcion": "Permite activar o desactivar notificaciones",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "ver_historial_ingresos",
+    "descripcion": "Permite ver el historial de sesiones iniciadas",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "gestionar_privacidad",
+    "descripcion": "Permite configurar la visibilidad del perfil",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "vincular_cuenta_oauth",
+    "descripcion": "Permite conectar cuentas externas como Google",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "eliminar_cuenta",
+    "descripcion": "Permite solicitar la eliminación de la cuenta",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "ver_perfil_publico",
+    "descripcion": "Permite visualizar el perfil como lo ven otros usuarios",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  },
+  {
+    "codigo": "gestionar_direcciones",
+    "descripcion": "Permite agregar, editar o eliminar direcciones personales",
+    "creado_en": "2024-05-01T12:00:00Z",
+    "actualizado_en": "2024-05-01T12:00:00Z"
+  }
+]

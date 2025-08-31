@@ -1,0 +1,42 @@
+[
+  {
+    "rol_codigo": "admin",
+    "permisos": [
+      "editar_perfil",
+      "eliminar_usuario",
+      "ver_historial_ingresos"
+    ]
+  },
+  {
+    "rol_codigo": "vendedor",
+    "permisos": [
+      "editar_perfil",
+      "ver_reportes",
+      "cambiar_foto_perfil",
+      "cambiar_contraseña",
+      "configurar_notificaciones",
+      "gestionar_privacidad",
+      "vincular_cuenta_oauth",
+      "eliminar_cuenta",
+      "ver_perfil_publico",
+      "gestionar_direcciones",
+      "ver_historial_ingresos"
+    ]
+  },
+  {
+    "rol_codigo": "cliente",
+    "permisos": [
+      "editar_perfil",
+      "ver_reportes",
+      "cambiar_foto_perfil",
+      "cambiar_contraseña",
+      "configurar_notificaciones",
+      "gestionar_privacidad",
+      "vincular_cuenta_oauth",
+      "eliminar_cuenta",
+      "ver_perfil_publico",
+      "gestionar_direcciones"
+
+    ]
+  }
+]
