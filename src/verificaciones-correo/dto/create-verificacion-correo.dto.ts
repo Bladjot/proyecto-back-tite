@@ -1,13 +1,16 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateVerificacionCorreoDto {
-  @IsNotEmpty()
-  @IsString()
-  usuarioId: string;
+  @ApiProperty({ example: 'juan@example.com', description: 'Correo a verificar' })
+  @IsEmail()
+  correo: string;
 
+  @ApiProperty({ example: 'abc123', description: 'Token de verificación enviado al correo' })
   @IsNotEmpty()
   @IsString()
   token: string;
 
-  expiracion?: Date;
+  @ApiProperty({ example: false, description: 'Si el correo ya fue verificado' })
+  verificado?: boolean;
 }
