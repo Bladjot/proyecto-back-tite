@@ -1,3 +1,4 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -35,9 +36,15 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
+  // 👉 Ruta extra para exportar el JSON de Swagger
+  app.getHttpAdapter().get('/api-docs-json', (req, res) => {
+    res.json(document);
+  });
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`✅ Aplicación ejecutándose en: http://localhost:${port}/api`);
   console.log(`📑 Swagger disponible en: http://localhost:${port}/api-docs`);
+  console.log(`📂 Swagger JSON en: http://localhost:${port}/api-docs-json`);
 }
 bootstrap();
