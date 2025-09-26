@@ -1,11 +1,10 @@
-// src/users/users.service.ts
 import {
   Injectable,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
 import { User, UserDocument } from './schemas/user.schema';
@@ -16,8 +15,8 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
+  // 🟢 Crear usuario
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    // Verificar si el email ya existe
     const existingUser = await this.userModel.findOne({
       email: createUserDto.email,
     });
@@ -25,11 +24,9 @@ export class UsersService {
       throw new ConflictException('El correo electrónico ya está registrado');
     }
 
-    // Hashear la contraseña
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
-    // Crear el nuevo usuario
     const newUser = new this.userModel({
       ...createUserDto,
       password: hashedPassword,
@@ -38,24 +35,33 @@ export class UsersService {
     return newUser.save();
   }
 
+  // 🟢 Listar usuarios (sin password)
   async findAll(): Promise<User[]> {
     return this.userModel.find().select('-password').exec();
   }
 
-  async findOne(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).select('-password').exec();
+  // 🟢 Buscar usuario por ID (sin password)
+  async findOne(id: string | Types.ObjectId): Promise<User> {
+    const user = await this.userModel
+      .findById(id)
+      .select('-password')
+      .exec();
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
     return user;
   }
 
-  async findByEmail(email: string): Promise<UserDocument> {
+  // 🟢 Buscar usuario por email (incluye password, para login)
+  async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    // Si hay una nueva contraseña, la hasheamos
+  // 🟢 Actualizar usuario (con hash si cambia la contraseña)
+  async update(
+    id: string | Types.ObjectId,
+    updateUserDto: Partial<UpdateUserDto>,
+  ): Promise<User> {
     if (updateUserDto.password) {
       const salt = await bcrypt.genSalt();
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, salt);
@@ -73,7 +79,8 @@ export class UsersService {
     return updatedUser;
   }
 
-  async remove(id: string): Promise<void> {
+  // 🟢 Eliminar usuario
+  async remove(id: string | Types.ObjectId): Promise<void> {
     const result = await this.userModel.findByIdAndDelete(id).exec();
     if (!result) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);

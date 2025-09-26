@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
@@ -17,7 +22,7 @@ export class AuthService {
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user.toObject();
+      const { password, ...result } = user.toObject ? user.toObject() : user;
       return result;
     }
     return null;
@@ -30,44 +35,6 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    // 👇 arreglado con cast a any
-    const userId = (user as any).id || user._id?.toString();
-
-    const payload = { 
-      email: user.email, 
-      sub: userId, 
-      roles: user.roles || ['cliente'], 
-      permisos: user.permisos || [] 
-    };
-
-    return {
-      user: {
-        id: userId,
-        email: user.email,
-        name: user.name,
-        lastName: user.lastName,
-        roles: user.roles || ['cliente'],
-        permisos: user.permisos || [],
-      },
-      access_token: this.jwtService.sign(payload),
-    };
-  }
-
-  // 🔑 Registro normal de usuario
-  async register(registerDto: RegisterDto) {
-    const createUserDto: CreateUserDto = {
-      name: registerDto.name,
-      lastName: registerDto.lastName,
-      email: registerDto.email,
-      password: registerDto.password,
-      roles: ['cliente'],   // 👈 rol por defecto
-      permisos: [],         // 👈 sin permisos iniciales
-    };
-
-    const newUser = await this.usersService.create(createUserDto);
-    const user = newUser.toObject ? newUser.toObject() : newUser;
-
-    // 👇 arreglado con cast a any
     const userId = (user as any).id || user._id?.toString();
 
     const payload = {
@@ -90,28 +57,69 @@ export class AuthService {
     };
   }
 
-  // 🔑 Perfil de usuario autenticado
+  // 📝 Registro normal de usuario
+  async register(registerDto: RegisterDto) {
+    const existing = await this.usersService.findByEmail(registerDto.email);
+    if (existing) {
+      throw new ConflictException('El correo electrónico ya está registrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+
+    const createUserDto: CreateUserDto = {
+      name: registerDto.name,
+      lastName: registerDto.lastName,
+      email: registerDto.email,
+      password: hashedPassword,
+      roles: ['cliente'],
+      permisos: [],
+    };
+
+    const newUser = await this.usersService.create(createUserDto);
+    const user = newUser.toObject ? newUser.toObject() : newUser;
+
+    const userId = (user as any).id || user._id?.toString();
+
+    const payload = {
+      email: user.email,
+      sub: userId,
+      roles: user.roles || ['cliente'],
+      permisos: user.permisos || [],
+    };
+
+    return {
+      user: {
+        id: userId,
+        email: user.email,
+        name: user.name,
+        lastName: user.lastName,
+        roles: user.roles || ['cliente'],
+        permisos: user.permisos || [],
+      },
+      access_token: this.jwtService.sign(payload),
+    };
+  }
+
+  // 👤 Perfil de usuario autenticado
   async me(userId: string) {
     return this.usersService.findOne(userId);
   }
 
-  // 🔑 Login con Google
+  // 🌐 Login con Google
   async googleLogin(googleUser: any) {
     if (!googleUser) {
       throw new UnauthorizedException('Error en autenticación con Google');
     }
 
-    // 1. Buscar usuario en la base de datos
     let user = await this.usersService.findByEmail(googleUser.email);
 
-    // 2. Si no existe, crearlo
     if (!user) {
       const createUserDto: CreateUserDto = {
         name: googleUser.firstName || 'Google',
         lastName: googleUser.lastName || 'User',
         email: googleUser.email,
-        password: 'google-auth', // 👈 password dummy
-        roles: ['user'],         // 👈 rol por defecto
+        password: await bcrypt.hash('google-auth', 10), // 🔑 password dummy encriptado
+        roles: ['user'],
         permisos: [],
         isActive: true,
       };
@@ -119,13 +127,9 @@ export class AuthService {
       user = await this.usersService.create(createUserDto);
     }
 
-    // 3. Convertir a objeto plano si es un Document de Mongoose
     const plainUser = user.toObject ? user.toObject() : user;
-
-    // 👇 arreglado con cast a any
     const userId = (plainUser as any).id || plainUser._id?.toString();
 
-    // 4. Generar JWT con roles y permisos
     const payload = {
       email: plainUser.email,
       sub: userId,
@@ -144,5 +148,21 @@ export class AuthService {
       },
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  // 🔍 Buscar usuario por email (para forgot/reset password)
+  async findByEmail(email: string) {
+    return this.usersService.findByEmail(email);
+  }
+
+  // 🔒 Actualizar contraseña
+  async updatePassword(email: string, newPassword: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return this.usersService.update(user._id, { password: hashedPassword });
   }
 }

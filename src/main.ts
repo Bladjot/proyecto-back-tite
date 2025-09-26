@@ -7,30 +7,31 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   
-  // Habilitar CORS para permitir conexiones desde el frontend
+  // ✅ Habilitar CORS para permitir conexiones desde el frontend
   app.enableCors({
-    origin: 'http://localhost:5173', // URL del frontend (Vite usa 5173 por defecto)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    origin: true, // acepta cualquier origen
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
   
-  // Configuración global de validación de DTOs
+  
+  // ✅ Configuración global de validación de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Elimina propiedades que no están en el DTO
-      transform: true,  // Transforma los datos recibidos al tipo del DTO
+      whitelist: true, // elimina propiedades que no están en el DTO
+      transform: true, // transforma automáticamente tipos (string → number, etc.)
     }),
   );
   
-  // Prefijo global para todas las rutas de la API
+  // ✅ Prefijo global para todas las rutas de la API
   app.setGlobalPrefix('api');
 
-  // ⚡ Configuración Swagger
+  // ✅ Configuración de Swagger
   const config = new DocumentBuilder()
     .setTitle('API Auth & Profiles - GPI')
     .setDescription('Documentación de los endpoints de Autenticación y Perfiles')
     .setVersion('1.0')
-    .addBearerAuth() // Para que Swagger pueda enviar JWT en headers
+    .addBearerAuth() // permite autenticación con JWT en Swagger
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
