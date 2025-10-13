@@ -1,8 +1,6 @@
+// ✅ src/users/schemas/user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument } from 'mongoose';
-
-// Tipo de documento de usuario
-export type UserDocument = HydratedDocument<User>;
+import { Document } from 'mongoose';
 
 @Schema({
   timestamps: true,
@@ -12,12 +10,12 @@ export type UserDocument = HydratedDocument<User>;
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
-      delete ret.password; // 👈 ocultamos password
+      delete ret.password;
       return ret;
     },
   },
 })
-export class User {
+export class User extends Document {
   @Prop({ required: true })
   name: string;
 
@@ -30,7 +28,7 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ type: [String], default: ['cliente'] })
+  @Prop({ type: [String], default: ['usuario'] })
   roles: string[];
 
   @Prop({ type: [String], default: [] })
@@ -41,7 +39,3 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.virtual('id').get(function () {
-  return this._id.toHexString();
-});

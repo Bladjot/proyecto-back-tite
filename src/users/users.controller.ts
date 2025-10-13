@@ -1,6 +1,6 @@
 // src/users/users.controller.ts
 import { 
-  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards 
+  Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request 
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
@@ -12,12 +12,13 @@ import { PermisosGuard } from 'src/common/guards/permisos.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Permisos } from 'src/common/decorators/permisos.decorator';
 
-@ApiTags('Users') // 👈 esto agrupa los endpoints en Swagger
+@ApiTags('Users') // 👈 agrupa los endpoints en Swagger
 @ApiBearerAuth()  // 👈 indica que usan JWT
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // 🧩 Crear usuario (público o según tu lógica)
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente' })
@@ -26,6 +27,7 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  // 👑 Solo admin puede ver todos los usuarios
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
@@ -36,6 +38,7 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  // 👁️ Ver usuario (requiere permiso específico)
   @UseGuards(JwtAuthGuard, PermisosGuard)
   @Permisos('ver_usuario')
   @Get(':id')
@@ -46,6 +49,7 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  // ✏️ Editar usuario (requiere permiso)
   @UseGuards(JwtAuthGuard, PermisosGuard)
   @Permisos('editar_usuario')
   @Patch(':id')
@@ -56,13 +60,18 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
+  // 🗑️ Eliminar usuario (admin y moderador, pero moderador no puede eliminar admin)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles('admin', 'moderador')
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un usuario (solo admin)' })
-  @ApiResponse({ status: 200, description: 'Usuario eliminado' })
+  @ApiOperation({ 
+    summary: 'Eliminar un usuario (admin o moderador, pero moderador no puede eliminar admin)' 
+  })
+  @ApiResponse({ status: 200, description: 'Usuario eliminado correctamente' })
+  @ApiResponse({ status: 403, description: 'No autorizado o acción no permitida' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: string, @Request() req) {
+    const currentUser = req.user;
+    return this.usersService.remove(id, currentUser);
   }
 }

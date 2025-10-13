@@ -6,46 +6,53 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  // ✅ Habilitar CORS para permitir conexiones desde el frontend
+
+  // ⚙️ Habilitar CORS (para conexión con el frontend)
   app.enableCors({
-    origin: true, // acepta cualquier origen
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
-  
-  
-  // ✅ Configuración global de validación de DTOs
+
+  // ⚙️ Validación global de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // elimina propiedades que no están en el DTO
-      transform: true, // transforma automáticamente tipos (string → number, etc.)
+      whitelist: true,
+      transform: true,
     }),
   );
-  
-  // ✅ Prefijo global para todas las rutas de la API
+
+  // Prefijo global para todos los endpoints
   app.setGlobalPrefix('api');
 
-  // ✅ Configuración de Swagger
+  // 📘 Configuración de Swagger actualizada
   const config = new DocumentBuilder()
-    .setTitle('API Auth & Profiles - GPI')
-    .setDescription('Documentación de los endpoints de Autenticación y Perfiles')
+    .setTitle('API GPI - Sistema de Roles y Usuarios')
+    .setDescription(`
+      Documentación de la API GPI con sistema de autenticación, roles y permisos.
+      
+      ### Roles disponibles:
+      - 👑 **admin:** puede crear, modificar, eliminar y ver todos los usuarios.
+      - 🧑‍💼 **moderador:** puede modificar y eliminar usuarios normales, pero **no** puede eliminar administradores.
+      - 👤 **usuario:** rol básico; puede ver y editar su propio perfil.
+
+      ### Endpoints principales:
+      - **/api/auth/** → registro, login, autenticación Google.
+      - **/api/users/** → CRUD de usuarios.
+      - **/api/roles/** → gestión de roles.
+      - **/api/permisos/** → gestión de permisos.
+    `)
     .setVersion('1.0')
-    .addBearerAuth() // permite autenticación con JWT en Swagger
+    .addBearerAuth() // Permite enviar el token JWT desde Swagger
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api-docs', app, document);
 
-  // 👉 Ruta extra para exportar el JSON de Swagger
-  app.getHttpAdapter().get('/api-docs-json', (req, res) => {
-    res.json(document);
-  });
-
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`✅ Aplicación ejecutándose en: http://localhost:${port}/api`);
-  console.log(`📑 Swagger disponible en: http://localhost:${port}/api-docs`);
-  console.log(`📂 Swagger JSON en: http://localhost:${port}/api-docs-json`);
+
+  console.log(`✅ Servidor ejecutándose en: http://localhost:${port}/api`);
+  console.log(`📘 Swagger disponible en: http://localhost:${port}/api-docs`);
 }
 bootstrap();

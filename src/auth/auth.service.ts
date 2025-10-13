@@ -1,3 +1,4 @@
+// ✅ src/auth/auth.service.ts
 import {
   Injectable,
   UnauthorizedException,
@@ -18,94 +19,102 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // 🔑 Validar credenciales para login normal
+  /**
+   * 🔐 Validar credenciales de usuario (login tradicional)
+   */
   async validateUser(email: string, password: string): Promise<any> {
     const user = await this.usersService.findByEmail(email);
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user.toObject ? user.toObject() : user;
-      return result;
+      const plainUser = user.toObject ? user.toObject() : user;
+      delete plainUser.password;
+      return plainUser;
     }
     return null;
   }
 
-  // 🔑 Login normal con email y contraseña
+  /**
+   * 🔑 Login normal con email y contraseña
+   */
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
     if (!user) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const userId = (user as any).id || user._id?.toString();
-
     const payload = {
       email: user.email,
-      sub: userId,
-      roles: user.roles || ['cliente'],
+      sub: user._id?.toString(),
+      roles: user.roles || ['usuario'],
       permisos: user.permisos || [],
     };
 
     return {
       user: {
-        id: userId,
+        id: user._id?.toString(),
         email: user.email,
         name: user.name,
         lastName: user.lastName,
-        roles: user.roles || ['cliente'],
+        roles: user.roles || ['usuario'],
         permisos: user.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  // 📝 Registro normal de usuario
+  /**
+   * 🧾 Registro de usuario nuevo
+   */
   async register(registerDto: RegisterDto) {
     const existing = await this.usersService.findByEmail(registerDto.email);
     if (existing) {
-      throw new ConflictException('El correo electrónico ya está registrado');
+      throw new ConflictException('El correo ya está registrado');
     }
 
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    const hashed = await bcrypt.hash(registerDto.password, 10);
 
     const createUserDto: CreateUserDto = {
       name: registerDto.name,
       lastName: registerDto.lastName,
       email: registerDto.email,
-      password: hashedPassword,
-      roles: ['cliente'],
+      password: hashed,
+      roles: ['usuario'],
       permisos: [],
+      isActive: true,
     };
 
     const newUser = await this.usersService.create(createUserDto);
     const user = newUser.toObject ? newUser.toObject() : newUser;
 
-    const userId = (user as any).id || user._id?.toString();
-
     const payload = {
       email: user.email,
-      sub: userId,
-      roles: user.roles || ['cliente'],
+      sub: user._id?.toString(),
+      roles: user.roles || ['usuario'],
       permisos: user.permisos || [],
     };
 
     return {
       user: {
-        id: userId,
+        id: user._id?.toString(),
         email: user.email,
         name: user.name,
         lastName: user.lastName,
-        roles: user.roles || ['cliente'],
+        roles: user.roles || ['usuario'],
         permisos: user.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  // 👤 Perfil de usuario autenticado
+  /**
+   * 👤 Obtener datos del usuario autenticado
+   */
   async me(userId: string) {
     return this.usersService.findOne(userId);
   }
 
-  // 🌐 Login con Google
+  /**
+   * 🔑 Login con Google OAuth
+   */
   async googleLogin(googleUser: any) {
     if (!googleUser) {
       throw new UnauthorizedException('Error en autenticación con Google');
@@ -113,27 +122,27 @@ export class AuthService {
 
     let user = await this.usersService.findByEmail(googleUser.email);
 
+    // Crear si no existe
     if (!user) {
       const createUserDto: CreateUserDto = {
         name: googleUser.firstName || 'Google',
         lastName: googleUser.lastName || 'User',
         email: googleUser.email,
-        password: await bcrypt.hash('google-auth', 10), // 🔑 password dummy encriptado
-        roles: ['user'],
+        password: await bcrypt.hash('google-auth', 10),
+        roles: ['usuario'],
         permisos: [],
         isActive: true,
       };
-
       user = await this.usersService.create(createUserDto);
     }
 
     const plainUser = user.toObject ? user.toObject() : user;
-    const userId = (plainUser as any).id || plainUser._id?.toString();
+    const userId = plainUser._id?.toString();
 
     const payload = {
       email: plainUser.email,
       sub: userId,
-      roles: plainUser.roles || ['user'],
+      roles: plainUser.roles || ['usuario'],
       permisos: plainUser.permisos || [],
     };
 
@@ -143,26 +152,43 @@ export class AuthService {
         email: plainUser.email,
         name: plainUser.name,
         lastName: plainUser.lastName,
-        roles: plainUser.roles || ['user'],
+        roles: plainUser.roles || ['usuario'],
         permisos: plainUser.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
     };
   }
 
-  // 🔍 Buscar usuario por email (para forgot/reset password)
-  async findByEmail(email: string) {
-    return this.usersService.findByEmail(email);
+  /**
+   * 🔍 Verifica si un correo existe
+   */
+  async checkEmail(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    return !!user;
   }
 
-  // 🔒 Actualizar contraseña
+  /**
+   * 🔍 Buscar usuario por email (para AuthController)
+   */
+  async findByEmail(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    return user;
+  }
+
+  /**
+   * 🔐 Actualizar contraseña del usuario
+   */
   async updatePassword(email: string, newPassword: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    return this.usersService.update(user._id, { password: hashedPassword });
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    return { message: 'Contraseña actualizada correctamente' };
   }
 }
