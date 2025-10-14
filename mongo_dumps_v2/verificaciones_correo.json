@@ -1,0 +1,30 @@
+[
+  {
+    "correo_usuario": "fran@pulgashop.cl",
+    "token": "verif_fran_2024_abc_hash",
+    "expira_en": "2024-06-01 23:59:59",
+    "consumido_en": "2024-05-01 12:05:00",
+    "creado_en": "2024-05-01 12:00:00"
+  },
+  {
+    "correo_usuario": "lukas@pulgashop.cl",
+    "token": "verif_lukas_2024_def_hash",
+    "expira_en": "2024-07-10 23:59:59",
+    "consumido_en": "2024-06-10 09:02:00",
+    "creado_en": "2024-06-10 09:00:00"
+  },
+  {
+    "correo_usuario": "sebastian@pulgashop.cl",
+    "token": "verif_seba_2024_ghi_hash",
+    "expira_en": "2024-08-20 23:59:59",
+    "consumido_en": "2024-07-20 16:42:00",
+    "creado_en": "2024-07-20 16:40:00"
+  },
+  {
+    "correo_usuario": "ignacio@pulgashop.cl",
+    "token": "verif_ignacio_2025_abc_hash",
+    "expira_en": "2025-06-15 23:59:59",
+    "consumido_en": null,
+    "creado_en": "2025-05-30 11:20:00"
+  }
+]

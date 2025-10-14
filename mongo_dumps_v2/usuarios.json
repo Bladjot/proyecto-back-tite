@@ -1,0 +1,196 @@
+[
+  {
+    "correo": "fran@pulgashop.cl",
+    "correo_normalizado": "fran@pulgashop.cl",
+    "clave_hash": "$2b$12$franhashxxxxxxxxxxxxxxxxxxxxxx111111111111111111111",
+    "correo_verificado": true,
+    "estado": "activo",
+    "ultimo_ingreso": "2025-09-15 10:30:00",
+    "creado_en": "2024-05-01 12:00:00",
+    "actualizado_en": "2025-09-15 10:30:00",
+    "eliminado_en": null,
+
+    "perfil": {
+      "nombre_usuario": "fran",
+      "nombre_completo": "Fran Meyer",
+      "rut": "12345678-5",
+      "foto": "https://images.example.com/fran.jpg",
+      "biografia": "QA & Backend en PulgaShop. Fan de los gatos y el café.",
+      "telefono": "+56998760001",
+      "pais": "Chile",
+      "ciudad": "Santiago",
+      "direccion": "Los Alerces 1250, Ñuñoa",
+      "codigo_postal": "7750000",
+      "preferencias": { "idioma": "es", "notificaciones": true, "contacto": "email" }
+    },
+
+    "roles": ["admin"],
+
+    "sesiones": [
+      {
+        "token_refresco": "rf_fran_abcd1234_hash",
+        "agente_usuario": "Mozilla/5.0 (Windows NT 10.0)",
+        "direccion_ip": "192.168.0.10",
+        "expira_en": "2025-12-01 00:00:00",
+        "creado_en": "2025-09-15 10:30:00",
+        "revocado_en": null
+      }
+    ],
+
+    "oauth": [
+  {
+    "proveedor": "google",
+    "id_proveedor": "google-uid-fran-001",
+    "correo": "fran@gmail.com",
+    "correo_verificado": true,
+    "nombre_completo": "Fran Meyer",
+    "avatar_url": "https://images.example.com/avatars/fran_g.jpg",
+    "token_acceso": "token_DEMO_fran",
+    "token_refresco": "refresh_DEMO_fran",
+    "expira_en": "2025-09-15 12:00:00",
+    "ultimo_ingreso": "2025-09-16 10:30:00"
+  }
+]
+
+  },
+
+  {
+    "correo": "lukas@pulgashop.cl",
+    "correo_normalizado": "lukas@pulgashop.cl",
+    "clave_hash": "$2b$12$lukashashxxxxxxxxxxxxxxxxxxxxx222222222222222222222",
+    "correo_verificado": true,
+    "estado": "activo",
+    "ultimo_ingreso": "2025-08-22 18:05:00",
+    "creado_en": "2024-06-10 09:00:00",
+    "actualizado_en": "2025-08-22 18:05:00",
+    "eliminado_en": null,
+
+    "perfil": {
+      "nombre_usuario": "lukas",
+      "nombre_completo": "Lukas Scheel",
+      "rut": "11111111-1",
+      "foto": "https://images.example.com/lukas.jpg",
+      "biografia": "Vendedor top en electrónica. Amante del ciclismo.",
+      "telefono": "+56998760002",
+      "pais": "Chile",
+      "ciudad": "Valparaíso",
+      "direccion": "Av. Argentina 2401, Plan",
+      "codigo_postal": "2360000",
+      "preferencias": { "idioma": "es", "notificaciones": true, "contacto": "whatsapp" }
+    },
+
+    "roles": ["vendedor"],
+
+    "sesiones": [
+      {
+        "token_refresco": "rf_lukas_efgh5678_hash",
+        "agente_usuario": "Mozilla/5.0 (X11; Linux x86_64)",
+        "direccion_ip": "192.168.0.20",
+        "expira_en": "2025-10-30 00:00:00",
+        "creado_en": "2025-08-22 18:05:00",
+        "revocado_en": null
+      }
+    ],
+
+    "oauth": [
+  {
+    "proveedor": "google",
+    "id_proveedor": "google-uid-lukas-001",
+    "correo": "lukas@gmail.com",
+    "correo_verificado": true,
+    "nombre_completo": "Lukas Scheel",
+    "avatar_url": "https://images.example.com/avatars/lukas_g.jpg",
+    "token_acceso": "token_DEMO_lukas",
+    "token_refresco": "refresh_DEMO_lukas",
+    "expira_en": "2025-08-22 20:00:00",
+    "ultimo_ingreso": "2025-08-27 18:05:00"
+  }
+]
+
+  },
+
+  {
+    "correo": "sebastian@pulgashop.cl",
+    "correo_normalizado": "sebastian@pulgashop.cl",
+    "clave_hash": "$2b$12$sebahashxxxxxxxxxxxxxxxxxxxxxx333333333333333333333",
+    "correo_verificado": true,
+    "estado": "activo",
+    "ultimo_ingreso": "2025-07-03 14:12:00",
+    "creado_en": "2024-07-20 16:40:00",
+    "actualizado_en": "2025-07-03 14:12:00",
+    "eliminado_en": null,
+
+    "perfil": {
+      "nombre_usuario": "sebastian",
+      "nombre_completo": "Sebastian Rodriguez",
+      "rut": "22222222-2",
+      "foto": "https://images.example.com/seba.jpg",
+      "biografia": "Comprador frecuente, buscando ofertas reales.",
+      "telefono": "+56998760003",
+      "pais": "Chile",
+      "ciudad": "Concepción",
+      "direccion": "Barros Arana 920, Centro",
+      "codigo_postal": "4030000",
+      "preferencias": { "idioma": "es", "notificaciones": false, "contacto": "email" }
+    },
+
+    "roles": ["cliente"],
+
+    "sesiones": [
+      {
+        "token_refresco": "rf_seba_ijkl9012_hash",
+        "agente_usuario": "Mozilla/5.0 (Mac OS X)",
+        "direccion_ip": "192.168.0.30",
+        "expira_en": "2025-09-15 00:00:00",
+        "creado_en": "2025-07-03 14:12:00",
+        "revocado_en": "2025-08-01 09:00:00"
+      }
+    ],
+
+    "oauth": [
+  {
+    "proveedor": "google",
+    "id_proveedor": "google-uid-seba-001",
+    "correo": "sebastian@gmail.com",
+    "correo_verificado": true,
+    "nombre_completo": "Sebastian Rodriguez",
+    "avatar_url": "https://images.example.com/avatars/seba_g.jpg",
+    "token_acceso": "token_DEMO_seba",
+    "token_refresco": "refresh_DEMO_seba",
+    "expira_en": "2025-07-03 16:00:00",
+    "ultimo_ingreso": "2025-07-08 14:12:00"
+  }
+]
+
+  },
+
+  {
+    "correo": "ignacio@pulgashop.cl",
+    "correo_normalizado": "ignacio@pulgashop.cl",
+    "clave_hash": "$2b$12$nachohashxxxxxxxxxxxxxxxxxxxxx444444444444444444444",
+    "correo_verificado": false,
+    "estado": "pendiente",
+    "ultimo_ingreso": "2025-06-01 08:00:00",
+    "creado_en": "2025-05-30 11:20:00",
+    "actualizado_en": "2025-06-01 08:00:00",
+    "eliminado_en": null,
+
+    "perfil": {
+      "nombre_usuario": "ignacio",
+      "nombre_completo": "Ignacio Mendoza",
+      "rut": "87654321-4",
+      "foto": "https://images.example.com/ignacio.jpg",
+      "biografia": "Moderación y comunidad. Me gustan los libros.",
+      "telefono": "+56998760004",
+      "pais": "Chile",
+      "ciudad": "La Serena",
+      "direccion": "Av. del Mar 4500, Peñuelas",
+      "codigo_postal": "1700000",
+      "preferencias": { "idioma": "es", "notificaciones": true, "contacto": "email" }
+    },
+
+    "roles": ["moderador"],
+    "sesiones": [],
+    "oauth": []
+  }
+]

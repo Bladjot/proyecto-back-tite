@@ -1,0 +1,19 @@
+[
+  { "codigo": "eliminar_usuario", "descripcion": "Permite eliminar usuarios", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "ver_reportes", "descripcion": "Permite ver reportes del sistema", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "editar_perfil", "descripcion": "Permite modificar datos personales del perfil", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "cambiar_foto_perfil", "descripcion": "Permite subir o cambiar la imagen de perfil", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "cambiar_contraseña", "descripcion": "Permite actualizar la clave de acceso", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "configurar_notificaciones", "descripcion": "Permite activar o desactivar notificaciones", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "ver_historial_ingresos", "descripcion": "Permite ver el historial de sesiones iniciadas", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "gestionar_privacidad", "descripcion": "Permite configurar la visibilidad del perfil", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "vincular_cuenta_oauth", "descripcion": "Permite conectar cuentas externas como Google", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "eliminar_cuenta", "descripcion": "Permite solicitar la eliminación de la cuenta", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "ver_perfil_publico", "descripcion": "Permite visualizar el perfil como lo ven otros usuarios", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+  { "codigo": "gestionar_direcciones", "descripcion": "Permite administrar direcciones personales", "creado_en": "2024-05-01 12:00:00", "actualizado_en": "2024-05-01 12:00:00" },
+
+  { "codigo": "modificar_contenido", "descripcion": "Permite editar publicaciones, comentarios, etc.", "creado_en": "2024-09-24 17:01:00", "actualizado_en": "2024-09-24 17:01:00" },
+  { "codigo": "eliminar_contenido", "descripcion": "Permite eliminar publicaciones, comentarios, etc.", "creado_en": "2024-09-24 17:01:00", "actualizado_en": "2024-09-24 17:01:00" },
+
+  { "codigo": "bloquear_usuario", "descripcion": "Permite cambiar el estado de un usuario a 'bloqueado'.", "creado_en": "2024-09-24 17:01:00", "actualizado_en": "2024-09-24 17:01:00" }
+]

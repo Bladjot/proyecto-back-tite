@@ -1,0 +1,26 @@
+[
+  {
+    "codigo": "admin",
+    "nombre": "Administrador",
+    "descripcion": "Acceso completo al sistema",
+    "actualizado_en": "2024-05-01 12:00:00"
+  },
+  {
+    "codigo": "vendedor",
+    "nombre": "Vendedor",
+    "descripcion": "Puede publicar productos",
+    "actualizado_en": "2024-05-01 12:00:00"
+  },
+  {
+    "codigo": "cliente",
+    "nombre": "Cliente",
+    "descripcion": "Puede comprar productos",
+    "actualizado_en": "2024-05-01 12:00:00"
+  },
+  {
+    "codigo": "moderador",
+    "nombre": "Moderador",
+    "descripcion": "Puede modificar y eliminar publicaciones",
+    "actualizado_en": "2024-09-24 17:01:00"
+  }
+]
