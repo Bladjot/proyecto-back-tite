@@ -34,13 +34,21 @@ async function bootstrap() {
       ### Roles disponibles:
       - 👑 **admin:** puede crear, modificar, eliminar y ver todos los usuarios.
       - 🧑‍💼 **moderador:** puede modificar y eliminar usuarios normales, pero **no** puede eliminar administradores.
-      - 👤 **usuario:** rol básico; puede ver y editar su propio perfil.
+      - 👤 **usuario:** rol básico; puede ver y editar su propio perfil.(se transforma en vendedor una vez verificado)
 
       ### Endpoints principales:
       - **/api/auth/** → registro, login, autenticación Google.
       - **/api/users/** → CRUD de usuarios.
       - **/api/roles/** → gestión de roles.
       - **/api/permisos/** → gestión de permisos.
+      ### Endpoints para los demas grupos:
+      - ** /api/users/public/:id (grupo 10-9-2)
+      - ** /auth/me (Grupo 6)
+      - ** /auth/can-access (Grupo 1)
+      ### Notas para los demas grupos:
+      GET /api/auth/me: requiere JWT. Usa header Authorization: Bearer <token>; devuelve id, name, lastName, email, roles, permisos del usuario autenticado.
+      GET /api/auth/can-access: requiere el mismo header y un query page=<codigo_permiso>. Responde { page, hasAccess } para confirmar si el permiso está en la lista del usuario.
+      GET /api/users/public/:id: público; solo sustituyes :id por el ObjectId del usuario. Entrega un perfil básico (id, name, lastName, email, isActive, timestamps) sin datos sensibles.
     `)
     .setVersion('1.0')
     .addBearerAuth() // Permite enviar el token JWT desde Swagger

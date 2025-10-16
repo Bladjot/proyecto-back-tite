@@ -113,6 +113,25 @@ export class AuthService {
   }
 
   /**
+   * ✅ Verificar si el usuario puede acceder a una página
+   */
+  async canAccessPage(userId: string, page: string): Promise<boolean> {
+    const userDocument = await this.usersService.findOne(userId);
+    const user =
+      userDocument && userDocument.toObject
+        ? userDocument.toObject()
+        : (userDocument as any);
+
+    const permisos: string[] = Array.isArray(user.permisos)
+      ? user.permisos
+      : [];
+
+    return permisos.some(
+      (permiso) => permiso.toLowerCase() === page.toLowerCase(),
+    );
+  }
+
+  /**
    * 🔑 Login con Google OAuth
    */
   async googleLogin(googleUser: any) {

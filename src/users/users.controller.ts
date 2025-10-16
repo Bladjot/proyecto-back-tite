@@ -6,6 +6,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PublicUserProfileDto } from './dto/public-user-profile.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { PermisosGuard } from 'src/common/guards/permisos.guard';
@@ -25,6 +26,15 @@ export class UsersController {
   @ApiResponse({ status: 400, description: 'Datos inválidos' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  // 🌐 Perfil público sin datos sensibles
+  @Get('public/:id')
+  @ApiOperation({ summary: 'Obtener perfil público de un usuario' })
+  @ApiResponse({ status: 200, description: 'Perfil público retornado' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  findPublic(@Param('id') id: string): Promise<PublicUserProfileDto> {
+    return this.usersService.findPublicProfile(id);
   }
 
   // 👑 Solo admin puede ver todos los usuarios
