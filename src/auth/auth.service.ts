@@ -20,6 +20,24 @@ export class AuthService {
   ) {}
 
   /**
+   * Determina la ruta destino después del login según el rol.
+   */
+  private resolvePostLoginRedirect(roles?: string[]): string {
+    if (!Array.isArray(roles)) {
+      return '/dashboard';
+    }
+
+    const normalizedRoles = roles
+      .filter((role): role is string => typeof role === 'string')
+      .map((role) => role.toLowerCase());
+    if (normalizedRoles.includes('admin')) {
+      return '/admin';
+    }
+
+    return '/dashboard';
+  }
+
+  /**
    * 🔐 Validar credenciales de usuario (login tradicional)
    */
   async validateUser(email: string, password: string): Promise<any> {
@@ -44,9 +62,11 @@ export class AuthService {
     const payload = {
       email: user.email,
       sub: user._id?.toString(),
-      roles: user.roles || ['usuario'],
+      roles: user.roles || ['cliente'],
       permisos: user.permisos || [],
     };
+
+    const redirectTo = this.resolvePostLoginRedirect(user.roles);
 
     return {
       user: {
@@ -54,10 +74,11 @@ export class AuthService {
         email: user.email,
         name: user.name,
         lastName: user.lastName,
-        roles: user.roles || ['usuario'],
+        roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
+      redirectTo,
     };
   }
 
@@ -77,7 +98,7 @@ export class AuthService {
       lastName: registerDto.lastName,
       email: registerDto.email,
       password: hashed,
-      roles: ['usuario'],
+      roles: ['cliente'],
       permisos: [],
       isActive: true,
     };
@@ -88,9 +109,11 @@ export class AuthService {
     const payload = {
       email: user.email,
       sub: user._id?.toString(),
-      roles: user.roles || ['usuario'],
+      roles: user.roles || ['cliente'],
       permisos: user.permisos || [],
     };
+
+    const redirectTo = this.resolvePostLoginRedirect(user.roles);
 
     return {
       user: {
@@ -98,10 +121,11 @@ export class AuthService {
         email: user.email,
         name: user.name,
         lastName: user.lastName,
-        roles: user.roles || ['usuario'],
+        roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
+      redirectTo,
     };
   }
 
@@ -142,18 +166,18 @@ export class AuthService {
     let user = await this.usersService.findByEmail(googleUser.email);
 
     // Crear si no existe
-    if (!user) {
-      const createUserDto: CreateUserDto = {
-        name: googleUser.firstName || 'Google',
-        lastName: googleUser.lastName || 'User',
-        email: googleUser.email,
-        password: await bcrypt.hash('google-auth', 10),
-        roles: ['usuario'],
-        permisos: [],
-        isActive: true,
-      };
-      user = await this.usersService.create(createUserDto);
-    }
+      if (!user) {
+        const createUserDto: CreateUserDto = {
+          name: googleUser.firstName || 'Google',
+          lastName: googleUser.lastName || 'User',
+          email: googleUser.email,
+          password: await bcrypt.hash('google-auth', 10),
+          roles: ['cliente'],
+          permisos: [],
+          isActive: true,
+        };
+        user = await this.usersService.create(createUserDto);
+      }
 
     const plainUser = user.toObject ? user.toObject() : user;
     const userId = plainUser._id?.toString();
@@ -161,9 +185,11 @@ export class AuthService {
     const payload = {
       email: plainUser.email,
       sub: userId,
-      roles: plainUser.roles || ['usuario'],
+      roles: plainUser.roles || ['cliente'],
       permisos: plainUser.permisos || [],
     };
+
+    const redirectTo = this.resolvePostLoginRedirect(plainUser.roles);
 
     return {
       user: {
@@ -171,10 +197,11 @@ export class AuthService {
         email: plainUser.email,
         name: plainUser.name,
         lastName: plainUser.lastName,
-        roles: plainUser.roles || ['usuario'],
+        roles: plainUser.roles || ['cliente'],
         permisos: plainUser.permisos || [],
       },
       access_token: this.jwtService.sign(payload),
+      redirectTo,
     };
   }
 

@@ -34,7 +34,7 @@ async function bootstrap() {
       ### Roles disponibles:
       - 👑 **admin:** puede crear, modificar, eliminar y ver todos los usuarios.
       - 🧑‍💼 **moderador:** puede modificar y eliminar usuarios normales, pero **no** puede eliminar administradores.
-      - 👤 **usuario:** rol básico; puede ver y editar su propio perfil.(se transforma en vendedor una vez verificado)
+      - 👤 **cliente:** rol básico; puede ver y editar su propio perfil y se convierte en vendedor una vez verificado.
 
       ### Endpoints principales:
       - **/api/auth/** → registro, login, autenticación Google.
