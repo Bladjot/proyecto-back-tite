@@ -17,7 +17,7 @@ import { VerificacionesCorreoModule } from './verificaciones-correo/verificacion
 
     // Conexión a MongoDB
     MongooseModule.forRootAsync({
-      imports: [ConfigModule],
+      
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI'),
