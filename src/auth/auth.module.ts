@@ -5,13 +5,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
-import { GoogleStrategy } from './strategies/google.strategy'; // 👈 nuevo
+import { GoogleStrategy } from './strategies/google.strategy';
 import { UsersModule } from '../users/users.module';
+import { GoogleRecaptchaModule } from 'nest-google-recaptcha';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+
+    
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -21,10 +24,21 @@ import { UsersModule } from '../users/users.module';
           expiresIn: configService.get<string>('JWT_EXPIRES_IN', '1d'),
         },
       }),
+    }), // JWT 
+
+    
+    GoogleRecaptchaModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secretKey: configService.get<string>('RECAPTCHA_SECRET_KEY'),
+        response: (req) => req.body.recaptchaToken,
+      }),
+      inject: [ConfigService],
     }),
+    
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy], // 👈 agregamos GoogleStrategy
+  providers: [AuthService, JwtStrategy, GoogleStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
