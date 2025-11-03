@@ -15,7 +15,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
-import { GoogleRecaptchaGuard } from 'nest-google-recaptcha';
+import { RecaptchaGuard } from 'src/common/guards/recaptcha.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -23,7 +23,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // 🔑 LOGIN
-  @UseGuards(GoogleRecaptchaGuard)
+  @UseGuards(RecaptchaGuard)
   @Post('login')
   @ApiOperation({ summary: 'Iniciar sesión con credenciales' })
   @ApiBody({ type: LoginDto })
@@ -32,7 +32,7 @@ export class AuthController {
   }
 
   // 📝 REGISTER
-  @UseGuards(GoogleRecaptchaGuard)
+  @UseGuards(RecaptchaGuard)
   @Post('register')
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @ApiBody({ type: RegisterDto })

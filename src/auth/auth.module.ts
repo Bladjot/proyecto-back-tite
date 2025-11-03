@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -12,12 +12,12 @@ import { GoogleRecaptchaModule } from 'nest-google-recaptcha';
 @Module({
   imports: [
     
-    UsersModule,
+    forwardRef(()=>UsersModule),
     PassportModule,
 
     
     JwtModule.registerAsync({
-      imports: [],
+      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
@@ -28,18 +28,12 @@ import { GoogleRecaptchaModule } from 'nest-google-recaptcha';
     }), // JWT 
 
     
-    GoogleRecaptchaModule.forRootAsync({
-      imports: [],
-      useFactory: (configService: ConfigService) => ({
-        secretKey: configService.get<string>('RECAPTCHA_SECRET_KEY'),
-        response: (req) => req.body.recaptchaToken,
-      }),
-      inject: [ConfigService],
-    }),
+    // NOTE: GoogleRecaptchaModule is configured in AppModule to avoid a circular
+    // dependency (AppModule -> AuthModule -> GoogleRecaptchaModule).
     
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, GoogleStrategy],
-  exports: [AuthService],
+  exports: [AuthService, PassportModule, JwtModule],
 })
 export class AuthModule {}

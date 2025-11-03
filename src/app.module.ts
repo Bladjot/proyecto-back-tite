@@ -31,6 +31,8 @@ import { VerificacionesCorreoModule } from './verificaciones-correo/verificacion
     PermisosModule,
     RolesPermisosModule,
     VerificacionesCorreoModule, // 👈 nuevo
+    // reCAPTCHA is validated by a custom RecaptchaGuard instead of the
+    // external `nest-google-recaptcha` module to avoid circular DI issues.
   ],
 })
 export class AppModule {}
