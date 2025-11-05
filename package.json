@@ -21,6 +21,7 @@
     "generate:data-dictionary": "ts-node scripts/generate-data-dictionary.ts"
   },
   "dependencies": {
+    "@nestjs/axios": "^4.0.1",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.3.0",
@@ -30,6 +31,7 @@
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/swagger": "^7.4.2",
+    "axios": "^1.13.1",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",

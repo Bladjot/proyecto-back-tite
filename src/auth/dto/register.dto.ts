@@ -35,4 +35,9 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({ description: 'Token de Google reCAPTCHA v2' })
+  @IsNotEmpty()
+  @IsString()
+  recaptchaToken: string;
 }
