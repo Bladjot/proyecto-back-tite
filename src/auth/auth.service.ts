@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -11,14 +12,48 @@ import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class AuthService {
+  private recaptchaSecret: string;
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.recaptchaSecret = this.configService.get<string>(
+      'RECAPTCHA_V2_SECRET_KEY',
+    );
+  }
+  private async validateRecaptcha(token: string): Promise<boolean> {
+    if (!this.recaptchaSecret) {
+      console.warn('RECAPTCHA_V2_SECRET_KEY no está configurada. Omitiendo validación.');
+      // En desarrollo, podrías permitir que pase si la clave no está.
+      // En producción, deberías lanzar un error.
+      // throw new InternalServerErrorException('reCAPTCHA no configurado');
+      return true; // Omitir si no hay clave
+    }
 
+    const verifyUrl = 'https://www.google.com/recaptcha/api/siteverify';
+    
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${verifyUrl}?secret=${this.recaptchaSecret}&response=${token}`,
+        ),
+      );
+      
+      return response.data.success === true;
+
+    } catch (error) {
+      console.error('Error al validar reCAPTCHA:', error.message);
+      return false;
+    }
+  }
   /**
    * Determina la ruta destino después del login según el rol.
    */
@@ -54,11 +89,11 @@ export class AuthService {
    * 🔑 Login normal con email y contraseña
    */
   async login(loginDto: LoginDto) {
-    const user = await this.validateUser(loginDto.email, loginDto.password);
-    if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+    const isRecaptchaValid = await this.validateRecaptcha(loginDto.recaptchaToken);
+    if (!isRecaptchaValid) {
+      throw new BadRequestException('Falló la verificación de reCAPTCHA');
     }
-
+    const user = await this.validateUser(loginDto.email, loginDto.password);
     const payload = {
       email: user.email,
       sub: user._id?.toString(),
@@ -86,11 +121,11 @@ export class AuthService {
    * 🧾 Registro de usuario nuevo
    */
   async register(registerDto: RegisterDto) {
-    const existing = await this.usersService.findByEmail(registerDto.email);
-    if (existing) {
-      throw new ConflictException('El correo ya está registrado');
+    const isRecaptchaValid = await this.validateRecaptcha(registerDto.recaptchaToken);
+    if (!isRecaptchaValid) {
+      throw new BadRequestException('Falló la verificación de reCAPTCHA');
     }
-
+    const existing = await this.usersService.findByEmail(registerDto.email);
     const hashed = await bcrypt.hash(registerDto.password, 10);
 
     const createUserDto: CreateUserDto = {
