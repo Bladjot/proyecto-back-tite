@@ -394,7 +394,8 @@ Temporary Items
 
 =======
 # Local
-#.env #Debes agregar tu archivo .env con tus variables de entorno en tu proyecto
+.env
+# Debes agregar tu archivo .env con tus variables de entorno en tu proyecto
 dist
 .webpack
 .serverless/**/*.zip
