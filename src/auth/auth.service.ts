@@ -99,6 +99,7 @@ export class AuthService {
       sub: user._id?.toString(),
       roles: user.roles || ['cliente'],
       permisos: user.permisos || [],
+      rut: user.rut,
     };
 
     const redirectTo = this.resolvePostLoginRedirect(user.roles);
@@ -109,6 +110,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         lastName: user.lastName,
+        rut: user.rut,
         roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
       },
@@ -131,6 +133,7 @@ export class AuthService {
     const createUserDto: CreateUserDto = {
       name: registerDto.name,
       lastName: registerDto.lastName,
+      rut: registerDto.rut,
       email: registerDto.email,
       password: hashed,
       roles: ['cliente'],
@@ -146,6 +149,7 @@ export class AuthService {
       sub: user._id?.toString(),
       roles: user.roles || ['cliente'],
       permisos: user.permisos || [],
+      rut: user.rut,
     };
 
     const redirectTo = this.resolvePostLoginRedirect(user.roles);
@@ -156,6 +160,7 @@ export class AuthService {
         email: user.email,
         name: user.name,
         lastName: user.lastName,
+        rut: user.rut,
         roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
       },
@@ -201,18 +206,31 @@ export class AuthService {
     let user = await this.usersService.findByEmail(googleUser.email);
 
     // Crear si no existe
-      if (!user) {
-        const createUserDto: CreateUserDto = {
-          name: googleUser.firstName || 'Google',
-          lastName: googleUser.lastName || 'User',
-          email: googleUser.email,
-          password: await bcrypt.hash('google-auth', 10),
-          roles: ['cliente'],
-          permisos: [],
-          isActive: true,
-        };
-        user = await this.usersService.create(createUserDto);
+    if (!user) {
+      const inferredRut =
+        googleUser.rut ||
+        googleUser?.profile?.rut ||
+        googleUser?.profile?.rutNumber ||
+        googleUser?.rutNumber;
+
+      if (!inferredRut) {
+        throw new BadRequestException(
+          'No se pudo obtener el RUT desde la cuenta de Google. Completa tu registro manualmente.',
+        );
       }
+
+      const createUserDto: CreateUserDto = {
+        name: googleUser.firstName || 'Google',
+        lastName: googleUser.lastName || 'User',
+        rut: inferredRut,
+        email: googleUser.email,
+        password: await bcrypt.hash('google-auth', 10),
+        roles: ['cliente'],
+        permisos: [],
+        isActive: true,
+      };
+      user = await this.usersService.create(createUserDto);
+    }
 
     const plainUser = user.toObject ? user.toObject() : user;
     const userId = plainUser._id?.toString();
@@ -222,6 +240,7 @@ export class AuthService {
       sub: userId,
       roles: plainUser.roles || ['cliente'],
       permisos: plainUser.permisos || [],
+      rut: plainUser.rut,
     };
 
     const redirectTo = this.resolvePostLoginRedirect(plainUser.roles);
@@ -232,6 +251,7 @@ export class AuthService {
         email: plainUser.email,
         name: plainUser.name,
         lastName: plainUser.lastName,
+        rut: plainUser.rut,
         roles: plainUser.roles || ['cliente'],
         permisos: plainUser.permisos || [],
       },

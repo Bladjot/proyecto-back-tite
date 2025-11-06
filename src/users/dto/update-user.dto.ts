@@ -21,6 +21,14 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   lastName?: string;
 
   @ApiPropertyOptional({
+    example: '12345678-5',
+    description: 'Nuevo RUT del usuario',
+  })
+  @IsOptional()
+  @IsString()
+  rut?: string;
+
+  @ApiPropertyOptional({
     example: '1234567',
     description: 'Nueva contraseña (mínimo 6 caracteres)',
     minLength: 6,

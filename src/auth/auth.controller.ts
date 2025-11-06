@@ -62,6 +62,7 @@ export class AuthController {
       name: user.name,
       lastName: user.lastName,
       email: user.email,
+      rut: user.rut,
       roles: user.roles || [],
       permisos: user.permisos || [],
     };

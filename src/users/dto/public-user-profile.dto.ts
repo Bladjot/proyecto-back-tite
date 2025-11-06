@@ -3,6 +3,7 @@ export class PublicUserProfileDto {
   name: string;
   lastName: string;
   email: string;
+  rut: string;
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;

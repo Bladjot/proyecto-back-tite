@@ -26,19 +26,59 @@ export class UsersService {
   /**
    * 🔍 Buscar todos los usuarios
    */
-  async findAll(): Promise<User[]> {
-    return await this.userModel.find().exec();
+  async findAll(): Promise<any[]> {
+    const users = await this.userModel
+      .find()
+      .select(
+        'name lastName email rut roles permisos isActive createdAt updatedAt',
+      )
+      .lean()
+      .exec();
+
+    return users.map((doc) => {
+      const user = doc as any;
+      return {
+        id: user._id?.toString?.() ?? user.id,
+        name: user.name,
+        lastName: user.lastName,
+        email: user.email,
+        rut: user.rut,
+        roles: user.roles ?? [],
+        permisos: user.permisos ?? [],
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    });
   }
 
   /**
    * 🔍 Buscar usuario por ID
    */
-  async findOne(id: string): Promise<User> {
-    const user = await this.userModel.findById(id).exec();
+  async findOne(id: string): Promise<any> {
+    const user = await this.userModel
+      .findById(id)
+      .select(
+        'name lastName email rut roles permisos isActive createdAt updatedAt',
+      )
+      .lean()
+      .exec();
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
-    return user;
+    const normalized = user as any;
+    return {
+      id: normalized._id?.toString?.() ?? normalized.id,
+      name: normalized.name,
+      lastName: normalized.lastName,
+      email: normalized.email,
+      rut: normalized.rut,
+      roles: normalized.roles ?? [],
+      permisos: normalized.permisos ?? [],
+      isActive: normalized.isActive,
+      createdAt: normalized.createdAt,
+      updatedAt: normalized.updatedAt,
+    };
   }
 
   /**
@@ -47,7 +87,7 @@ export class UsersService {
   async findPublicProfile(id: string): Promise<PublicUserProfileDto> {
     const user = await this.userModel
       .findById(id)
-      .select('name lastName email isActive createdAt updatedAt')
+      .select('name lastName email rut isActive createdAt updatedAt')
       .lean()
       .exec();
 
@@ -55,13 +95,14 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    const { _id, name, lastName, email, isActive, createdAt, updatedAt } = user as any;
+    const { _id, name, lastName, email, rut, isActive, createdAt, updatedAt } = user as any;
 
     return {
       id: _id?.toString?.() ?? String(_id),
       name,
       lastName,
       email,
+      rut,
       isActive,
       createdAt,
       updatedAt,

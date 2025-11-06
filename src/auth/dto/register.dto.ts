@@ -19,6 +19,14 @@ export class RegisterDto {
   lastName: string;
 
   @ApiProperty({
+    example: '12345678-5',
+    description: 'RUT chileno del usuario',
+  })
+  @IsNotEmpty()
+  @IsString()
+  rut: string;
+
+  @ApiProperty({
     example: 'juan@example.com',
     description: 'Correo electrónico único',
   })
