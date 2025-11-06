@@ -82,6 +82,51 @@ export class UsersService {
   }
 
   /**
+   * Perfil extendido: devuelve solo biografía y preferencias del usuario
+   */
+  async findProfileDetails(id: string): Promise<{ biografia: string | null; preferencias: any | null }> {
+    const user = await this.userModel
+      .findById(id)
+      .select('biografia preferencias')
+      .lean()
+      .exec();
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    const { biografia = null, preferencias = null } = (user as any) || {};
+    return { biografia, preferencias };
+  }
+
+  /**
+   * Actualizar biografía y/o preferencias del usuario autenticado
+   */
+  async updateProfileDetails(
+    id: string,
+    payload: { biografia?: string; preferencias?: Record<string, any> },
+  ): Promise<{ biografia: string | null; preferencias: any | null }> {
+    const $set: any = {};
+    if (typeof payload.biografia !== 'undefined') $set.biografia = payload.biografia;
+    if (typeof payload.preferencias !== 'undefined') $set.preferencias = payload.preferencias;
+
+    const updated = await this.userModel
+      .findByIdAndUpdate(id, { $set }, { new: true })
+      .select('biografia preferencias')
+      .lean()
+      .exec();
+
+    if (!updated) {
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+    }
+
+    return {
+      biografia: (updated as any)?.biografia ?? null,
+      preferencias: (updated as any)?.preferencias ?? null,
+    };
+  }
+
+  /**
    * 👤 Perfil público sin datos sensibles
    */
   async findPublicProfile(id: string): Promise<PublicUserProfileDto> {

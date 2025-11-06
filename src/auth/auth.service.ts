@@ -177,6 +177,23 @@ export class AuthService {
   }
 
   /**
+   * Obtener detalles del perfil (biografía y preferencias)
+   */
+  async getProfileDetails(userId: string) {
+    return this.usersService.findProfileDetails(userId);
+  }
+
+  /**
+   * Actualizar biografía y/o preferencias del usuario
+   */
+  async updateProfileDetails(
+    userId: string,
+    dto: { biografia?: string; preferencias?: Record<string, any> },
+  ) {
+    return this.usersService.updateProfileDetails(userId, dto);
+  }
+
+  /**
    * ✅ Verificar si el usuario puede acceder a una página
    */
   async canAccessPage(userId: string, page: string): Promise<boolean> {

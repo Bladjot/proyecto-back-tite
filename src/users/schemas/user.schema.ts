@@ -39,6 +39,13 @@ export class User extends Document {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  // Campos opcionales para perfil extendido
+  @Prop({ required: false })
+  biografia?: string;
+
+  @Prop({ type: Object, required: false, default: {} })
+  preferencias?: Record<string, any>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

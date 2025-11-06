@@ -1,6 +1,8 @@
 import {
   Controller,
   Post,
+  Put,
+  Patch,
   Body,
   Get,
   UseGuards,
@@ -15,6 +17,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
+import { UpdateProfileDetailsDto } from './dto/update-profile-details.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -66,6 +69,44 @@ export class AuthController {
       roles: user.roles || [],
       permisos: user.permisos || [],
     };
+  }
+
+  // Perfil extendido: biografía y preferencias (requiere JWT)
+  @UseGuards(JwtAuthGuard)
+  @Get('profile-details')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Obtener biografía y preferencias del usuario autenticado',
+  })
+  async getProfileDetails(@Request() req) {
+    const details = await this.authService.getProfileDetails(req.user.userId);
+    return details;
+  }
+
+  // Variantes POST/PUT/PATCH para el front (mismo retorno)
+  @UseGuards(JwtAuthGuard)
+  @Post('profile-details')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Perfil (POST): biografía y preferencias' })
+  async postProfileDetails(@Request() req) {
+    return this.authService.getProfileDetails(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile-details')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Perfil (PUT): biografía y preferencias' })
+  async putProfileDetails(@Request() req) {
+    return this.authService.getProfileDetails(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile-details')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Actualizar biografía y/o preferencias' })
+  @ApiBody({ type: UpdateProfileDetailsDto })
+  async patchProfileDetails(@Request() req, @Body() body: UpdateProfileDetailsDto) {
+    return this.authService.updateProfileDetails(req.user.userId, body);
   }
 
   // ✅ CHECK PAGE PERMISSION
