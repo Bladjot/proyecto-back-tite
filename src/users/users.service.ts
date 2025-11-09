@@ -30,7 +30,7 @@ export class UsersService {
     const users = await this.userModel
       .find()
       .select(
-        'name lastName email rut roles permisos isActive createdAt updatedAt',
+        'name lastName email telefono rut roles permisos isActive foto createdAt updatedAt',
       )
       .lean()
       .exec();
@@ -42,10 +42,12 @@ export class UsersService {
         name: user.name,
         lastName: user.lastName,
         email: user.email,
+        telefono: user.telefono ?? null,
         rut: user.rut,
         roles: user.roles ?? [],
         permisos: user.permisos ?? [],
         isActive: user.isActive,
+        foto: user.foto ?? null,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       };
@@ -59,7 +61,7 @@ export class UsersService {
     const user = await this.userModel
       .findById(id)
       .select(
-        'name lastName email rut roles permisos isActive createdAt updatedAt',
+        'name lastName email telefono rut roles permisos isActive foto createdAt updatedAt',
       )
       .lean()
       .exec();
@@ -72,22 +74,29 @@ export class UsersService {
       name: normalized.name,
       lastName: normalized.lastName,
       email: normalized.email,
+      telefono: normalized.telefono ?? null,
       rut: normalized.rut,
       roles: normalized.roles ?? [],
       permisos: normalized.permisos ?? [],
       isActive: normalized.isActive,
+      foto: normalized.foto ?? null,
       createdAt: normalized.createdAt,
       updatedAt: normalized.updatedAt,
     };
   }
 
   /**
-   * Perfil extendido: devuelve solo biografía y preferencias del usuario
+   * Perfil extendido: devuelve solo la biografía del usuario
    */
-  async findProfileDetails(id: string): Promise<{ biografia: string | null; preferencias: any | null }> {
+  async findProfileDetails(id: string): Promise<{
+    biografia: string | null;
+    preferencias: any | null;
+    email: string;
+    telefono: string | null;
+  }> {
     const user = await this.userModel
       .findById(id)
-      .select('biografia preferencias')
+      .select('biografia preferencias email telefono')
       .lean()
       .exec();
 
@@ -95,24 +104,45 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    const { biografia = null, preferencias = null } = (user as any) || {};
-    return { biografia, preferencias };
+    const { biografia = null, preferencias = null, email, telefono = null } = (user as any) || {};
+    return { biografia, preferencias, email, telefono };
   }
 
   /**
-   * Actualizar biografía y/o preferencias del usuario autenticado
+   * Actualizar nombre, apellido y/o biografía del usuario autenticado
    */
   async updateProfileDetails(
     id: string,
-    payload: { biografia?: string; preferencias?: Record<string, any> },
-  ): Promise<{ biografia: string | null; preferencias: any | null }> {
+    payload: {
+      name?: string;
+      lastName?: string;
+      biografia?: string;
+      foto?: string | null;
+      preferencias?: Record<string, any> | null;
+      telefono?: string | null;
+      email?: string;
+      passwordHash?: string;
+    },
+  ): Promise<{
+    biografia: string | null;
+    foto: string | null;
+    preferencias: any | null;
+    email: string;
+    telefono: string | null;
+  }> {
     const $set: any = {};
+    if (typeof payload.name !== 'undefined') $set.name = payload.name;
+    if (typeof payload.lastName !== 'undefined') $set.lastName = payload.lastName;
     if (typeof payload.biografia !== 'undefined') $set.biografia = payload.biografia;
+    if (typeof payload.foto !== 'undefined') $set.foto = payload.foto;
     if (typeof payload.preferencias !== 'undefined') $set.preferencias = payload.preferencias;
+    if (typeof payload.telefono !== 'undefined') $set.telefono = payload.telefono;
+    if (typeof payload.email !== 'undefined') $set.email = payload.email;
+    if (typeof payload.passwordHash !== 'undefined') $set.password = payload.passwordHash;
 
     const updated = await this.userModel
       .findByIdAndUpdate(id, { $set }, { new: true })
-      .select('biografia preferencias')
+      .select('biografia foto preferencias email telefono')
       .lean()
       .exec();
 
@@ -122,8 +152,18 @@ export class UsersService {
 
     return {
       biografia: (updated as any)?.biografia ?? null,
+      foto: (updated as any)?.foto ?? null,
       preferencias: (updated as any)?.preferencias ?? null,
+      email: (updated as any)?.email,
+      telefono: (updated as any)?.telefono ?? null,
     };
+  }
+
+  /**
+   * Obtener usuario con password (uso interno)
+   */
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.userModel.findById(id).exec();
   }
 
   /**

@@ -7,6 +7,7 @@ import { RolesModule } from './roles/roles.module';
 import { PermisosModule } from './permisos/permisos.module';
 import { RolesPermisosModule } from './roles-permisos/roles-permisos.module';
 import { VerificacionesCorreoModule } from './verificaciones-correo/verificaciones-correo.module'; // 👈 nuevo
+import { VendorAccreditationsModule } from './vendor-accreditations/vendor-accreditations.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { VerificacionesCorreoModule } from './verificaciones-correo/verificacion
     PermisosModule,
     RolesPermisosModule,
     VerificacionesCorreoModule, // 👈 nuevo
+    VendorAccreditationsModule,
   ],
 })
 export class AppModule {}

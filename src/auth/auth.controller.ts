@@ -6,18 +6,27 @@ import {
   Body,
   Get,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   Request,
   NotFoundException,
   BadRequestException,
   Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { Express } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
-import { UpdateProfileDetailsDto } from './dto/update-profile-details.dto';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { UpdateProfileDetailsDto, UpdateProfileDetailsWithPhotoDto } from './dto/update-profile-details.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  getProfilePhotoPublicPath,
+  profilePhotoFileFilter,
+  profilePhotoStorage,
+} from '../common/storage/profile-photo.storage';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -68,6 +77,8 @@ export class AuthController {
       rut: user.rut,
       roles: user.roles || [],
       permisos: user.permisos || [],
+      foto: user.foto ?? null,
+      telefono: user.telefono ?? null,
     };
   }
 
@@ -102,11 +113,70 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('profile-details')
+  @UseInterceptors(
+    FileInterceptor('foto', {
+      storage: profilePhotoStorage,
+      fileFilter: profilePhotoFileFilter,
+      limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar biografía y/o preferencias' })
-  @ApiBody({ type: UpdateProfileDetailsDto })
-  async patchProfileDetails(@Request() req, @Body() body: UpdateProfileDetailsDto) {
-    return this.authService.updateProfileDetails(req.user.userId, body);
+  @ApiOperation({ summary: 'Actualizar nombre, apellido, biografía, foto y preferencias' })
+  @ApiBody({ type: UpdateProfileDetailsWithPhotoDto })
+  async patchProfileDetails(
+    @Request() req,
+    @Body() body: UpdateProfileDetailsDto,
+    @UploadedFile() foto?: Express.Multer.File,
+  ) {
+    if (body.newPassword && !body.currentPassword) {
+      throw new BadRequestException(
+        'Debes enviar la contraseña actual para establecer una nueva.',
+      );
+    }
+
+    const payload: {
+      name?: string;
+      lastName?: string;
+      biografia?: string;
+      foto?: string | null;
+      preferencias?: Record<string, any> | null;
+      email?: string;
+      telefono?: string;
+      currentPassword?: string;
+      newPassword?: string;
+    } = {
+      name: body.name,
+      lastName: body.lastName,
+      biografia: body.biografia,
+      email: body.email,
+      telefono: body.telefono,
+      currentPassword: body.currentPassword,
+      newPassword: body.newPassword,
+    };
+
+    if (typeof body.preferencias !== 'undefined') {
+      if (body.preferencias === null || body.preferencias === '') {
+        payload.preferencias = null;
+      } else {
+        try {
+          payload.preferencias =
+            typeof body.preferencias === 'string'
+              ? JSON.parse(body.preferencias)
+              : (body.preferencias as unknown as Record<string, any>);
+        } catch (error) {
+          throw new BadRequestException(
+            'El campo preferencias debe ser un JSON válido.',
+          );
+        }
+      }
+    }
+
+    if (foto) {
+      payload.foto = getProfilePhotoPublicPath(foto.filename);
+    }
+
+    return this.authService.updateProfileDetails(req.user.userId, payload);
   }
 
   // ✅ CHECK PAGE PERMISSION

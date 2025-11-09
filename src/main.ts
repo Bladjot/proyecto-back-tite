@@ -3,9 +3,11 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // ⚙️ Habilitar CORS (para conexión con el frontend)
   app.enableCors({
@@ -24,6 +26,11 @@ async function bootstrap() {
 
   // Prefijo global para todos los endpoints
   app.setGlobalPrefix('api');
+
+  // 📂 Archivos estáticos (fotos de perfil)
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   // 📘 Configuración de Swagger actualizada
   const config = new DocumentBuilder()

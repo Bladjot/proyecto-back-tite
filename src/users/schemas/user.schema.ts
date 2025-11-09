@@ -25,6 +25,9 @@ export class User extends Document {
   @Prop({ required: true, unique: true })
   email: string;
 
+  @Prop({ required: false })
+  telefono?: string;
+
   @Prop({ required: true })
   password: string;
 
@@ -39,6 +42,9 @@ export class User extends Document {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ required: false })
+  foto?: string;
 
   // Campos opcionales para perfil extendido
   @Prop({ required: false })

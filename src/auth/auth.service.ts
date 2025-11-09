@@ -113,6 +113,7 @@ export class AuthService {
         rut: user.rut,
         roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
+        foto: user.foto ?? null,
       },
       access_token: this.jwtService.sign(payload),
       redirectTo,
@@ -163,6 +164,7 @@ export class AuthService {
         rut: user.rut,
         roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
+        foto: user.foto ?? null,
       },
       access_token: this.jwtService.sign(payload),
       redirectTo,
@@ -177,20 +179,80 @@ export class AuthService {
   }
 
   /**
-   * Obtener detalles del perfil (biografía y preferencias)
+   * Obtener detalles del perfil (biografía + preferencias)
    */
   async getProfileDetails(userId: string) {
     return this.usersService.findProfileDetails(userId);
   }
 
   /**
-   * Actualizar biografía y/o preferencias del usuario
+   * Actualizar nombre, apellido, biografía, foto y/o preferencias
    */
   async updateProfileDetails(
     userId: string,
-    dto: { biografia?: string; preferencias?: Record<string, any> },
+    dto: {
+      name?: string;
+      lastName?: string;
+      biografia?: string;
+      foto?: string | null;
+      preferencias?: Record<string, any> | null;
+      email?: string;
+      telefono?: string;
+      currentPassword?: string;
+      newPassword?: string;
+    },
   ) {
-    return this.usersService.updateProfileDetails(userId, dto);
+    const user = await this.usersService.findByIdWithPassword(userId);
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const updatePayload: {
+      name?: string;
+      lastName?: string;
+      biografia?: string;
+      foto?: string | null;
+      preferencias?: Record<string, any> | null;
+      telefono?: string | null;
+      email?: string;
+      passwordHash?: string;
+    } = {
+      name: dto.name,
+      lastName: dto.lastName,
+      biografia: dto.biografia,
+      foto: dto.foto,
+      preferencias: dto.preferencias,
+    };
+
+    if (typeof dto.telefono !== 'undefined') {
+      updatePayload.telefono = dto.telefono ?? null;
+    }
+
+    if (typeof dto.email !== 'undefined' && dto.email !== user.email) {
+      const emailTaken = await this.usersService.findByEmail(dto.email);
+      if (emailTaken && emailTaken._id?.toString() !== user._id?.toString()) {
+        throw new ConflictException('El correo ya está registrado por otro usuario.');
+      }
+      updatePayload.email = dto.email;
+    }
+
+    if (dto.newPassword) {
+      if (!dto.currentPassword) {
+        throw new BadRequestException(
+          'Debes incluir la contraseña actual para cambiarla.',
+        );
+      }
+      const isCurrentPasswordValid = await bcrypt.compare(
+        dto.currentPassword,
+        user.password,
+      );
+      if (!isCurrentPasswordValid) {
+        throw new BadRequestException('La contraseña actual no es correcta.');
+      }
+      updatePayload.passwordHash = await bcrypt.hash(dto.newPassword, 10);
+    }
+
+    return this.usersService.updateProfileDetails(userId, updatePayload);
   }
 
   /**
