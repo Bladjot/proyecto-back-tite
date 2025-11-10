@@ -19,7 +19,7 @@ export class VendorAccreditationsService {
   ): Promise<VendorAccreditation> {
     const payload = {
       ...dto,
-      userId: userId ? new Types.ObjectId(userId) : undefined,
+      usuario_id: userId ? new Types.ObjectId(userId) : undefined,
     };
     const doc = new this.vendorAccreditationModel(payload);
     return doc.save();

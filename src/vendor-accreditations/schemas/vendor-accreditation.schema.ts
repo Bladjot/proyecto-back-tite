@@ -6,23 +6,23 @@ import { Document, Types } from 'mongoose';
 })
 export class VendorAccreditation extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: false })
-  userId?: Types.ObjectId;
+  usuario_id?: Types.ObjectId;
 
   @Prop({ required: true })
-  storeName: string;
+  nombre_tienda: string;
 
   @Prop({ required: true })
-  contactNumber: string;
+  telefono_contacto: string;
 
   @Prop({ required: true })
-  companyRut: string;
+  rut_empresa: string;
 
   @Prop({
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
-    default: 'pending',
+    enum: ['pendiente', 'aprobado', 'rechazado'],
+    default: 'pendiente',
   })
-  status: 'pending' | 'approved' | 'rejected';
+  estado: 'pendiente' | 'aprobado' | 'rechazado';
 }
 
 export const VendorAccreditationSchema =

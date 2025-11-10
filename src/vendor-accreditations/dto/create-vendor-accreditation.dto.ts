@@ -5,15 +5,15 @@ export class CreateVendorAccreditationDto {
   @ApiProperty({ description: 'Nombre de la tienda', example: 'PulgaShop Store' })
   @IsString()
   @IsNotEmpty()
-  storeName: string;
+  nombre_tienda: string;
 
   @ApiProperty({ description: 'Número de contacto', example: '+56987654321' })
   @IsString()
   @IsNotEmpty()
-  contactNumber: string;
+  telefono_contacto: string;
 
   @ApiProperty({ description: 'RUT de la empresa', example: '76.123.456-7' })
   @IsString()
   @IsNotEmpty()
-  companyRut: string;
+  rut_empresa: string;
 }
