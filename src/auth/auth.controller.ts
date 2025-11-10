@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Post,
   Put,
@@ -12,9 +12,10 @@ import {
   NotFoundException,
   BadRequestException,
   Query,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Express } from 'express';
+import { Express, Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
@@ -22,6 +23,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { UpdateProfileDetailsDto, UpdateProfileDetailsWithPhotoDto } from './dto/update-profile-details.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ConfigService } from '@nestjs/config';
 import {
   getProfilePhotoPublicPath,
   profilePhotoFileFilter,
@@ -31,17 +33,20 @@ import {
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  // 🔑 LOGIN
+  // ðŸ”‘ LOGIN
   @Post('login')
-  @ApiOperation({ summary: 'Iniciar sesión con credenciales' })
+  @ApiOperation({ summary: 'Iniciar sesiÃ³n con credenciales' })
   @ApiBody({ type: LoginDto })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
-  // 📝 REGISTER
+  // ðŸ“ REGISTER
   @Post('register')
   @ApiOperation({ summary: 'Registrar nuevo usuario' })
   @ApiBody({ type: RegisterDto })
@@ -49,14 +54,14 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  // 👤 GET PROFILE (requiere JWT)
+  // ðŸ‘¤ GET PROFILE (requiere JWT)
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Obtener usuario autenticado (Equipo 6)',
     description:
-      'Devuelve los datos básicos del usuario actual según su token JWT. Ideal para que el sistema u otros módulos conozcan quién está conectado.',
+      'Devuelve los datos bÃ¡sicos del usuario actual segÃºn su token JWT. Ideal para que el sistema u otros mÃ³dulos conozcan quiÃ©n estÃ¡ conectado.',
   })
   async getProfile(@Request() req) {
     // El guard JwtAuthGuard ya valida el token y carga req.user
@@ -82,12 +87,12 @@ export class AuthController {
     };
   }
 
-  // Perfil extendido: biografía y preferencias (requiere JWT)
+  // Perfil extendido: biografÃ­a y preferencias (requiere JWT)
   @UseGuards(JwtAuthGuard)
   @Get('profile-details')
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Obtener biografía y preferencias del usuario autenticado',
+    summary: 'Obtener biografÃ­a y preferencias del usuario autenticado',
   })
   async getProfileDetails(@Request() req) {
     const details = await this.authService.getProfileDetails(req.user.userId);
@@ -98,7 +103,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('profile-details')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Perfil (POST): biografía y preferencias' })
+  @ApiOperation({ summary: 'Perfil (POST): biografÃ­a y preferencias' })
   async postProfileDetails(@Request() req) {
     return this.authService.getProfileDetails(req.user.userId);
   }
@@ -106,7 +111,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Put('profile-details')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Perfil (PUT): biografía y preferencias' })
+  @ApiOperation({ summary: 'Perfil (PUT): biografÃ­a y preferencias' })
   async putProfileDetails(@Request() req) {
     return this.authService.getProfileDetails(req.user.userId);
   }
@@ -122,7 +127,7 @@ export class AuthController {
   )
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar nombre, apellido, biografía, foto y preferencias' })
+  @ApiOperation({ summary: 'Actualizar nombre, apellido, biografÃ­a, foto y preferencias' })
   @ApiBody({ type: UpdateProfileDetailsWithPhotoDto })
   async patchProfileDetails(
     @Request() req,
@@ -131,7 +136,7 @@ export class AuthController {
   ) {
     if (body.newPassword && !body.currentPassword) {
       throw new BadRequestException(
-        'Debes enviar la contraseña actual para establecer una nueva.',
+        'Debes enviar la contraseÃ±a actual para establecer una nueva.',
       );
     }
 
@@ -166,7 +171,7 @@ export class AuthController {
               : (body.preferencias as unknown as Record<string, any>);
         } catch (error) {
           throw new BadRequestException(
-            'El campo preferencias debe ser un JSON válido.',
+            'El campo preferencias debe ser un JSON vÃ¡lido.',
           );
         }
       }
@@ -179,19 +184,19 @@ export class AuthController {
     return this.authService.updateProfileDetails(req.user.userId, payload);
   }
 
-  // ✅ CHECK PAGE PERMISSION
+  // âœ… CHECK PAGE PERMISSION
   @UseGuards(JwtAuthGuard)
   @Get('can-access')
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Verificar acceso a una página',
+    summary: 'Verificar acceso a una pÃ¡gina',
     description:
-      'Comprueba si el usuario autenticado posee el permiso necesario para acceder a una página dada.',
+      'Comprueba si el usuario autenticado posee el permiso necesario para acceder a una pÃ¡gina dada.',
   })
   async canAccessPage(@Request() req, @Query('page') page?: string) {
     if (!page) {
       throw new BadRequestException(
-        'Debes especificar el identificador de la página en el query param "page".',
+        'Debes especificar el identificador de la pÃ¡gina en el query param "page".',
       );
     }
 
@@ -206,41 +211,80 @@ export class AuthController {
     };
   }
 
-  // 🌐 LOGIN GOOGLE
+  // ðŸŒ LOGIN GOOGLE
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  @ApiOperation({ summary: 'Iniciar sesión con Google OAuth2' })
+  @ApiOperation({ summary: 'Iniciar sesiÃ³n con Google OAuth2' })
   async googleAuth() {
     return { message: 'Redirigiendo a Google...' };
   }
 
-  // 🌐 CALLBACK GOOGLE
+  // ðŸŒ CALLBACK GOOGLE
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Callback de autenticación Google' })
-  async googleAuthRedirect(@Request() req) {
-    return this.authService.googleLogin(req.user);
+  async googleAuthRedirect(@Request() req, @Res() res: Response) {
+    const authResult = await this.authService.googleLogin(req.user);
+    const redirectUrl = this.buildGoogleRedirectUrl(
+      authResult.redirectTo,
+      authResult.access_token,
+    );
+
+    return res.redirect(redirectUrl);
   }
 
-  // 📩 OLVIDÉ CONTRASEÑA
+  private buildGoogleRedirectUrl(
+    redirectPath: string | undefined,
+    accessToken: string,
+  ): string {
+    const frontendBaseUrl =
+      this.configService.get<string>('FRONTEND_BASE_URL') ??
+      'http://localhost:5173';
+    const fallbackHomePath = this.configService.get<string>(
+      'FRONTEND_HOME_PATH',
+      '/home',
+    );
+    const targetPath =
+      redirectPath && redirectPath.trim().length > 0
+        ? redirectPath
+        : fallbackHomePath || '/home';
+    const normalizedPath = targetPath.startsWith('/')
+      ? targetPath
+      : `/${targetPath}`;
+
+    let targetUrl: URL;
+    try {
+      targetUrl = new URL(frontendBaseUrl);
+    } catch {
+      targetUrl = new URL('http://localhost:5173');
+    }
+
+    targetUrl.pathname = normalizedPath;
+    if (accessToken) {
+      targetUrl.searchParams.set('access_token', accessToken);
+    }
+
+    return targetUrl.toString();
+  }
+  // ðŸ“© OLVIDÃ‰ CONTRASEÃ‘A
   @Post('forgot-password')
-  @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña' })
+  @ApiOperation({ summary: 'Solicitar restablecimiento de contraseÃ±a' })
   async forgotPassword(@Body('email') email: string) {
     const user = await this.authService.findByEmail(email);
 
     if (!user) {
-      throw new NotFoundException('El correo no está registrado');
+      throw new NotFoundException('El correo no estÃ¡ registrado');
     }
 
-    // Aquí normalmente generas token y envías email
+    // AquÃ­ normalmente generas token y envÃ­as email
     return {
-      message: 'Email enviado con instrucciones para resetear la contraseña',
+      message: 'Email enviado con instrucciones para resetear la contraseÃ±a',
     };
   }
 
-  // 🔒 RESETEAR CONTRASEÑA
+  // ðŸ”’ RESETEAR CONTRASEÃ‘A
   @Post('reset-password')
-  @ApiOperation({ summary: 'Restablecer contraseña mediante token o email' })
+  @ApiOperation({ summary: 'Restablecer contraseÃ±a mediante token o email' })
   async resetPassword(
     @Body('email') email: string,
     @Body('newPassword') newPassword: string,
@@ -248,11 +292,13 @@ export class AuthController {
     const user = await this.authService.findByEmail(email);
 
     if (!user) {
-      throw new NotFoundException('El correo no está registrado');
+      throw new NotFoundException('El correo no estÃ¡ registrado');
     }
 
     await this.authService.updatePassword(email, newPassword);
 
-    return { message: 'Contraseña actualizada correctamente' };
+    return { message: 'ContraseÃ±a actualizada correctamente' };
   }
 }
+
+
