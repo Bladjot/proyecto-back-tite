@@ -58,18 +58,24 @@ export class AuthService {
    * Determina la ruta destino después del login según el rol.
    */
   private resolvePostLoginRedirect(roles?: string[]): string {
-    if (!Array.isArray(roles)) {
-      return '/dashboard';
+    const defaultHomePath = this.configService.get<string>(
+      'FRONTEND_HOME_PATH',
+      '/home',
+    );
+
+    if (!Array.isArray(roles) || roles.length === 0) {
+      return defaultHomePath;
     }
 
     const normalizedRoles = roles
       .filter((role): role is string => typeof role === 'string')
       .map((role) => role.toLowerCase());
+
     if (normalizedRoles.includes('admin')) {
       return '/admin';
     }
 
-    return '/dashboard';
+    return defaultHomePath;
   }
 
   /**
