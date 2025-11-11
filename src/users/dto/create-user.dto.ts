@@ -14,12 +14,12 @@ export class CreateUserDto {
   @ApiProperty({ example: 'Juan', description: 'Nombre del usuario' })
   @IsNotEmpty()
   @IsString()
-  name: string;
+  nombre: string;
 
   @ApiProperty({ example: 'Pérez', description: 'Apellido del usuario' })
   @IsNotEmpty()
   @IsString()
-  lastName: string;
+  apellido: string;
 
   @ApiProperty({
     example: '12345678-5',
@@ -32,13 +32,13 @@ export class CreateUserDto {
   @ApiProperty({ example: 'juan@example.com', description: 'Correo electrónico único' })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  correo: string;
 
   @ApiProperty({ example: 'password123', description: 'Contraseña del usuario (mínimo 6 caracteres)' })
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
-  password: string;
+  contrasena: string;
 
   @ApiProperty({ 
     example: ['cliente'], 
@@ -67,5 +67,5 @@ export class CreateUserDto {
   })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  activo?: boolean;
 }

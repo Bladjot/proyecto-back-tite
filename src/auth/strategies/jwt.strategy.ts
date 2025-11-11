@@ -26,7 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // ✅ aseguramos roles y permisos
     return {
       userId: payload.sub,
-      email: payload.email,
+      correo: payload.correo,
       roles: payload.roles || [],
       permisos: payload.permisos || [],
     };

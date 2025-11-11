@@ -8,7 +8,7 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsString()
-  name: string;
+  nombre: string;
 
   @ApiProperty({
     example: 'Pérez',
@@ -16,7 +16,7 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsString()
-  lastName: string;
+  apellido: string;
 
   @ApiProperty({
     example: '12345678-5',
@@ -32,7 +32,7 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  correo: string;
 
   @ApiProperty({
     example: '123456',
@@ -42,7 +42,7 @@ export class RegisterDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(6)
-  password: string;
+  contrasena: string;
 
   @ApiProperty({ description: 'Token de Google reCAPTCHA v2' })
   @IsNotEmpty()

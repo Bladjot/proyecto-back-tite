@@ -3,33 +3,37 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 @Schema({
-  timestamps: true,
+  collection: 'usuarios',
+  timestamps: {
+    createdAt: 'creado_en',
+    updatedAt: 'actualizado_en',
+  },
   toJSON: {
     virtuals: true,
     transform: (_: any, ret: any) => {
       ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
-      delete ret.password;
+      delete ret.contrasena;
       return ret;
     },
   },
 })
 export class User extends Document {
   @Prop({ required: true })
-  name: string;
+  nombre: string;
 
   @Prop({ required: true })
-  lastName: string;
+  apellido: string;
 
   @Prop({ required: true, unique: true })
-  email: string;
+  correo: string;
 
   @Prop({ required: false })
   telefono?: string;
 
   @Prop({ required: true })
-  password: string;
+  contrasena: string;
 
   @Prop({ required: true, unique: true })
   rut: string;
@@ -41,7 +45,7 @@ export class User extends Document {
   permisos: string[];
 
   @Prop({ default: true })
-  isActive: boolean;
+  activo: boolean;
 
   @Prop({ required: false })
   foto?: string;

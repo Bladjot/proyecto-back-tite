@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type RolePermisoDocument = RolePermiso & Document;
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'roles_permisos', timestamps: true })
 export class RolePermiso {
   @Prop({ type: Types.ObjectId, ref: 'Role', required: true })
   roleId: Types.ObjectId;

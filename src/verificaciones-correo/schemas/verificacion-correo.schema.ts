@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type VerificacionCorreoDocument = VerificacionCorreo & Document;
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'verificaciones_correo', timestamps: true })
 export class VerificacionCorreo {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   usuarioId: Types.ObjectId;

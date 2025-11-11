@@ -71,14 +71,15 @@ export class AuthController {
     // Evitamos exponer campos sensibles
     return {
       id: user.id || user._id?.toString(),
-      name: user.name,
-      lastName: user.lastName,
-      email: user.email,
+      nombre: user.nombre,
+      apellido: user.apellido,
+      correo: user.correo,
       rut: user.rut,
       roles: user.roles || [],
       permisos: user.permisos || [],
       foto: user.foto ?? null,
       telefono: user.telefono ?? null,
+      activo: user.activo,
     };
   }
 
@@ -129,30 +130,30 @@ export class AuthController {
     @Body() body: UpdateProfileDetailsDto,
     @UploadedFile() foto?: Express.Multer.File,
   ) {
-    if (body.newPassword && !body.currentPassword) {
+    if (body.nuevaContrasena && !body.contrasenaActual) {
       throw new BadRequestException(
         'Debes enviar la contraseña actual para establecer una nueva.',
       );
     }
 
     const payload: {
-      name?: string;
-      lastName?: string;
+      nombre?: string;
+      apellido?: string;
       biografia?: string;
       foto?: string | null;
       preferencias?: Record<string, any> | null;
-      email?: string;
+      correo?: string;
       telefono?: string;
-      currentPassword?: string;
-      newPassword?: string;
+      contrasenaActual?: string;
+      nuevaContrasena?: string;
     } = {
-      name: body.name,
-      lastName: body.lastName,
+      nombre: body.nombre,
+      apellido: body.apellido,
       biografia: body.biografia,
-      email: body.email,
+      correo: body.correo,
       telefono: body.telefono,
-      currentPassword: body.currentPassword,
-      newPassword: body.newPassword,
+      contrasenaActual: body.contrasenaActual,
+      nuevaContrasena: body.nuevaContrasena,
     };
 
     if (typeof body.preferencias !== 'undefined') {
@@ -225,8 +226,8 @@ export class AuthController {
   // 📩 OLVIDÉ CONTRASEÑA
   @Post('forgot-password')
   @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña' })
-  async forgotPassword(@Body('email') email: string) {
-    const user = await this.authService.findByEmail(email);
+  async forgotPassword(@Body('correo') correo: string) {
+    const user = await this.authService.findByCorreo(correo);
 
     if (!user) {
       throw new NotFoundException('El correo no está registrado');
@@ -240,18 +241,18 @@ export class AuthController {
 
   // 🔒 RESETEAR CONTRASEÑA
   @Post('reset-password')
-  @ApiOperation({ summary: 'Restablecer contraseña mediante token o email' })
+  @ApiOperation({ summary: 'Restablecer contraseña mediante token o correo' })
   async resetPassword(
-    @Body('email') email: string,
-    @Body('newPassword') newPassword: string,
+    @Body('correo') correo: string,
+    @Body('nuevaContrasena') nuevaContrasena: string,
   ) {
-    const user = await this.authService.findByEmail(email);
+    const user = await this.authService.findByCorreo(correo);
 
     if (!user) {
       throw new NotFoundException('El correo no está registrado');
     }
 
-    await this.authService.updatePassword(email, newPassword);
+    await this.authService.actualizarContrasena(correo, nuevaContrasena);
 
     return { message: 'Contraseña actualizada correctamente' };
   }

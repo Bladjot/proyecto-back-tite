@@ -75,27 +75,30 @@ export class AuthService {
   /**
    * 🔐 Validar credenciales de usuario (login tradicional)
    */
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(password, user.password))) {
+  async validateUser(correo: string, contrasena: string): Promise<any> {
+    const user = await this.usersService.findByCorreo(correo);
+    if (user && (await bcrypt.compare(contrasena, user.contrasena))) {
       const plainUser = user.toObject ? user.toObject() : user;
-      delete plainUser.password;
+      delete plainUser.contrasena;
       return plainUser;
     }
     return null;
   }
 
   /**
-   * 🔑 Login normal con email y contraseña
+   * 🔑 Login normal con correo y contraseña
    */
   async login(loginDto: LoginDto) {
     const isRecaptchaValid = await this.validateRecaptcha(loginDto.recaptchaToken);
     if (!isRecaptchaValid) {
       throw new BadRequestException('Falló la verificación de reCAPTCHA');
     }
-    const user = await this.validateUser(loginDto.email, loginDto.password);
+    const user = await this.validateUser(loginDto.correo, loginDto.contrasena);
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
     const payload = {
-      email: user.email,
+      correo: user.correo,
       sub: user._id?.toString(),
       roles: user.roles || ['cliente'],
       permisos: user.permisos || [],
@@ -107,13 +110,14 @@ export class AuthService {
     return {
       user: {
         id: user._id?.toString(),
-        email: user.email,
-        name: user.name,
-        lastName: user.lastName,
+        correo: user.correo,
+        nombre: user.nombre,
+        apellido: user.apellido,
         rut: user.rut,
         roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
         foto: user.foto ?? null,
+        activo: user.activo,
       },
       access_token: this.jwtService.sign(payload),
       redirectTo,
@@ -128,25 +132,25 @@ export class AuthService {
     if (!isRecaptchaValid) {
       throw new BadRequestException('Falló la verificación de reCAPTCHA');
     }
-    const existing = await this.usersService.findByEmail(registerDto.email);
-    const hashed = await bcrypt.hash(registerDto.password, 10);
+    const existing = await this.usersService.findByCorreo(registerDto.correo);
+    const hashed = await bcrypt.hash(registerDto.contrasena, 10);
 
     const createUserDto: CreateUserDto = {
-      name: registerDto.name,
-      lastName: registerDto.lastName,
+      nombre: registerDto.nombre,
+      apellido: registerDto.apellido,
       rut: registerDto.rut,
-      email: registerDto.email,
-      password: hashed,
+      correo: registerDto.correo,
+      contrasena: hashed,
       roles: ['cliente'],
       permisos: [],
-      isActive: true,
+      activo: true,
     };
 
     const newUser = await this.usersService.create(createUserDto);
     const user = newUser.toObject ? newUser.toObject() : newUser;
 
     const payload = {
-      email: user.email,
+      correo: user.correo,
       sub: user._id?.toString(),
       roles: user.roles || ['cliente'],
       permisos: user.permisos || [],
@@ -158,13 +162,14 @@ export class AuthService {
     return {
       user: {
         id: user._id?.toString(),
-        email: user.email,
-        name: user.name,
-        lastName: user.lastName,
+        correo: user.correo,
+        nombre: user.nombre,
+        apellido: user.apellido,
         rut: user.rut,
         roles: user.roles || ['cliente'],
         permisos: user.permisos || [],
         foto: user.foto ?? null,
+        activo: user.activo,
       },
       access_token: this.jwtService.sign(payload),
       redirectTo,
@@ -191,15 +196,15 @@ export class AuthService {
   async updateProfileDetails(
     userId: string,
     dto: {
-      name?: string;
-      lastName?: string;
+      nombre?: string;
+      apellido?: string;
       biografia?: string;
       foto?: string | null;
       preferencias?: Record<string, any> | null;
-      email?: string;
+      correo?: string;
       telefono?: string;
-      currentPassword?: string;
-      newPassword?: string;
+      contrasenaActual?: string;
+      nuevaContrasena?: string;
     },
   ) {
     const user = await this.usersService.findByIdWithPassword(userId);
@@ -208,17 +213,17 @@ export class AuthService {
     }
 
     const updatePayload: {
-      name?: string;
-      lastName?: string;
+      nombre?: string;
+      apellido?: string;
       biografia?: string;
       foto?: string | null;
       preferencias?: Record<string, any> | null;
       telefono?: string | null;
-      email?: string;
-      passwordHash?: string;
+      correo?: string;
+      contrasenaHash?: string;
     } = {
-      name: dto.name,
-      lastName: dto.lastName,
+      nombre: dto.nombre,
+      apellido: dto.apellido,
       biografia: dto.biografia,
       foto: dto.foto,
       preferencias: dto.preferencias,
@@ -228,28 +233,28 @@ export class AuthService {
       updatePayload.telefono = dto.telefono ?? null;
     }
 
-    if (typeof dto.email !== 'undefined' && dto.email !== user.email) {
-      const emailTaken = await this.usersService.findByEmail(dto.email);
+    if (typeof dto.correo !== 'undefined' && dto.correo !== user.correo) {
+      const emailTaken = await this.usersService.findByCorreo(dto.correo);
       if (emailTaken && emailTaken._id?.toString() !== user._id?.toString()) {
         throw new ConflictException('El correo ya está registrado por otro usuario.');
       }
-      updatePayload.email = dto.email;
+      updatePayload.correo = dto.correo;
     }
 
-    if (dto.newPassword) {
-      if (!dto.currentPassword) {
+    if (dto.nuevaContrasena) {
+      if (!dto.contrasenaActual) {
         throw new BadRequestException(
           'Debes incluir la contraseña actual para cambiarla.',
         );
       }
       const isCurrentPasswordValid = await bcrypt.compare(
-        dto.currentPassword,
-        user.password,
+        dto.contrasenaActual,
+        user.contrasena,
       );
       if (!isCurrentPasswordValid) {
         throw new BadRequestException('La contraseña actual no es correcta.');
       }
-      updatePayload.passwordHash = await bcrypt.hash(dto.newPassword, 10);
+      updatePayload.contrasenaHash = await bcrypt.hash(dto.nuevaContrasena, 10);
     }
 
     return this.usersService.updateProfileDetails(userId, updatePayload);
@@ -282,7 +287,7 @@ export class AuthService {
       throw new UnauthorizedException('Error en autenticación con Google');
     }
 
-    let user = await this.usersService.findByEmail(googleUser.email);
+    let user = await this.usersService.findByCorreo(googleUser.correo);
 
     // Crear si no existe
     if (!user) {
@@ -299,14 +304,14 @@ export class AuthService {
       }
 
       const createUserDto: CreateUserDto = {
-        name: googleUser.firstName || 'Google',
-        lastName: googleUser.lastName || 'User',
+        nombre: googleUser.nombre || 'Google',
+        apellido: googleUser.apellido || 'User',
         rut: inferredRut,
-        email: googleUser.email,
-        password: await bcrypt.hash('google-auth', 10),
+        correo: googleUser.correo,
+        contrasena: await bcrypt.hash('google-auth', 10),
         roles: ['cliente'],
         permisos: [],
-        isActive: true,
+        activo: true,
       };
       user = await this.usersService.create(createUserDto);
     }
@@ -315,7 +320,7 @@ export class AuthService {
     const userId = plainUser._id?.toString();
 
     const payload = {
-      email: plainUser.email,
+      correo: plainUser.correo,
       sub: userId,
       roles: plainUser.roles || ['cliente'],
       permisos: plainUser.permisos || [],
@@ -327,12 +332,13 @@ export class AuthService {
     return {
       user: {
         id: userId,
-        email: plainUser.email,
-        name: plainUser.name,
-        lastName: plainUser.lastName,
+        correo: plainUser.correo,
+        nombre: plainUser.nombre,
+        apellido: plainUser.apellido,
         rut: plainUser.rut,
         roles: plainUser.roles || ['cliente'],
         permisos: plainUser.permisos || [],
+        activo: plainUser.activo,
       },
       access_token: this.jwtService.sign(payload),
       redirectTo,
@@ -342,16 +348,16 @@ export class AuthService {
   /**
    * 🔍 Verifica si un correo existe
    */
-  async checkEmail(email: string) {
-    const user = await this.usersService.findByEmail(email);
+  async checkCorreo(correo: string) {
+    const user = await this.usersService.findByCorreo(correo);
     return !!user;
   }
 
   /**
-   * 🔍 Buscar usuario por email (para AuthController)
+   * 🔍 Buscar usuario por correo (para AuthController)
    */
-  async findByEmail(email: string) {
-    const user = await this.usersService.findByEmail(email);
+  async findByCorreo(correo: string) {
+    const user = await this.usersService.findByCorreo(correo);
     if (!user) throw new NotFoundException('Usuario no encontrado');
     return user;
   }
@@ -359,14 +365,14 @@ export class AuthService {
   /**
    * 🔐 Actualizar contraseña del usuario
    */
-  async updatePassword(email: string, newPassword: string) {
-    const user = await this.usersService.findByEmail(email);
+  async actualizarContrasena(correo: string, nuevaContrasena: string) {
+    const user = await this.usersService.findByCorreo(correo);
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const hashed = await bcrypt.hash(newPassword, 10);
-    user.password = hashed;
+    const hashed = await bcrypt.hash(nuevaContrasena, 10);
+    user.contrasena = hashed;
     await user.save();
 
     return { message: 'Contraseña actualizada correctamente' };

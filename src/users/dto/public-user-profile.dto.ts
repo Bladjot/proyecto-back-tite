@@ -1,10 +1,10 @@
 export class PublicUserProfileDto {
   id: string;
-  name: string;
-  lastName: string;
-  email: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
   rut: string;
-  isActive: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  activo: boolean;
+  creado_en?: Date;
+  actualizado_en?: Date;
 }

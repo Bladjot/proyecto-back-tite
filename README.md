@@ -101,19 +101,41 @@ La autenticación está implementada usando JWT (JSON Web Tokens):
    pnpm install
    ```
 
-3. Crea un archivo `.env` en la raíz del proyecto con el siguiente contenido:
+3. Crea un archivo `.env` en la raíz del proyecto con el siguiente contenido (puedes usarlo como plantilla compartida):
    ```
    NODE_ENV=development
    PORT=3000
-   MONGODB_URI=mongodb://localhost:27017/gpi_database
+   MONGODB_URI=mongodb://Admin:Admin1234Admin@localhost:27017/gpi_database
    JWT_SECRET=EstoEsUnSecretoSuperSeguroParaElCursoGPI
    JWT_EXPIRES_IN=1d
+   VITE_API_URL=http://localhost:3000/api
+   RECAPTCHA_V2_SECRET_KEY=<tu_clave_recaptcha>
+   GOOGLE_CLIENT_ID=<tu_google_client_id>
+   GOOGLE_CLIENT_SECRET=<tu_google_client_secret>
    ```
 
 4. Asegúrate de que MongoDB esté en ejecución:
    - **Windows**: Inicia el servicio MongoDB
    - **macOS**: `brew services start mongodb-community`
    - **Linux**: `sudo systemctl start mongod`
+
+### 📦 Base de datos y respaldo compartido
+
+En el directorio `backups/gpi_dump` se encuentra un `mongodump` actualizado con las colecciones en español (`usuarios`, `roles`, `permisos`, `roles_permisos`, etc.). Para restaurarlo en tu entorno local:
+
+```bash
+mongorestore --drop \
+  --uri "mongodb://Admin:Admin1234Admin@localhost:27017/gpi_database" \
+  --db gpi_database ./backups/gpi_dump/gpi_database
+```
+
+- `--drop` elimina las colecciones previas para que todos partan con los mismos datos.
+- El usuario `Admin/ Admin1234Admin` solo vive dentro de MongoDB (no es el usuario de la aplicación).
+- Después de restaurar, puedes ingresar con el usuario de aplicación `admin@admin.com / Admin1234` vía Postman.
+- Si necesitas refrescar el backup, ejecuta:
+  ```bash
+  mongodump --uri "mongodb://Admin:Admin1234Admin@localhost:27017/gpi_database" --db gpi_database --out ./backups/gpi_dump
+  ```
 
 ### Ejecución
 
@@ -136,20 +158,25 @@ La autenticación está implementada usando JWT (JSON Web Tokens):
 - **POST /api/auth/register**: Registrar un nuevo usuario
   ```json
   {
-    "name": "John",
-    "lastName": "Doe",
-    "email": "john.doe@example.com",
-    "password": "password123"
+    "nombre": "John",
+    "apellido": "Doe",
+    "rut": "12345678-9",
+    "correo": "john.doe@example.com",
+    "contrasena": "password123",
+    "recaptchaToken": "<token_recaptcha_v2>"
   }
   ```
 
 - **POST /api/auth/login**: Iniciar sesión
   ```json
   {
-    "email": "john.doe@example.com",
-    "password": "password123"
+    "correo": "john.doe@example.com",
+    "contrasena": "password123",
+    "recaptchaToken": "<token_recaptcha_v2>"
   }
   ```
+
+> **Nota:** Todas las respuestas relacionadas a usuarios (login, register, `/auth/me`, `/users`, etc.) exponen campos en español: `nombre`, `apellido`, `correo`, `roles`, `permisos`, `activo`, `creado_en`, `actualizado_en`.
 
 - **GET /api/auth/me**: Obtener información del usuario autenticado (requiere token JWT)
 
@@ -190,9 +217,9 @@ Para integrar este backend con el frontend React:
 2. Los hooks de autenticación en el frontend deben usar los endpoints correspondientes:
    ```typescript
    // Ejemplo de login en el frontend
-   const login = async (email, password) => {
+   const login = async (correo: string, contrasena: string) => {
      try {
-       const response = await api.post('/auth/login', { email, password });
+       const response = await api.post('/auth/login', { correo, contrasena });
        localStorage.setItem('token', response.data.access_token);
        return response.data.user;
      } catch (error) {

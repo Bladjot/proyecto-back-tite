@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 @Schema({
+  collection: 'acreditaciones_vendedores',
   timestamps: true,
 })
 export class VendorAccreditation extends Document {

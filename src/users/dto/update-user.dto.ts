@@ -10,7 +10,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsString()
-  name?: string;
+  nombre?: string;
 
   @ApiPropertyOptional({
     example: 'Pérez modificado',
@@ -18,7 +18,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsString()
-  lastName?: string;
+  apellido?: string;
 
   @ApiPropertyOptional({
     example: '12345678-5',
@@ -36,7 +36,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   @IsString()
   @MinLength(6)
-  password?: string;
+  contrasena?: string;
 
   @ApiPropertyOptional({
     example: 'admin',
@@ -44,7 +44,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsString()
-  role?: string;
+  rol?: string;
 
   @ApiPropertyOptional({
     example: false,
@@ -52,5 +52,5 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  activo?: boolean;
 }

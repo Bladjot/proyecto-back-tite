@@ -8,7 +8,7 @@ export class LoginDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  correo: string;
 
   @ApiProperty({
     example: '123456',
@@ -16,7 +16,7 @@ export class LoginDto {
   })
   @IsNotEmpty()
   @IsString()
-  password: string;
+  contrasena: string;
 
   @ApiProperty({ description: 'Token de Google reCAPTCHA v2' })
   @IsNotEmpty()

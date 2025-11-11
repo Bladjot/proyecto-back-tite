@@ -5,21 +5,56 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PublicUserProfileDto } from './dto/public-user-profile.dto';
+import { Role, RoleDocument } from '../roles/schemas/role.schema';
+import {
+  RolePermiso,
+  RolePermisoDocument,
+} from '../roles-permisos/schemas/role-permiso.schema';
+import { Permiso, PermisoDocument } from '../permisos/schemas/permiso.schema';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private readonly userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Role.name) private readonly roleModel: Model<RoleDocument>,
+    @InjectModel(RolePermiso.name)
+    private readonly rolePermisoModel: Model<RolePermisoDocument>,
+    @InjectModel(Permiso.name)
+    private readonly permisoModel: Model<PermisoDocument>,
+  ) {}
 
   /**
    * 🧩 Crear un nuevo usuario
    */
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const newUser = new this.userModel(createUserDto);
+    const rolesNormalizados =
+      (createUserDto.roles && createUserDto.roles.length > 0
+        ? createUserDto.roles
+        : ['cliente']);
+
+    const permisosPorRol = await this.obtenerPermisosDesdeRoles(
+      rolesNormalizados,
+    );
+    const permisosExtras = Array.isArray(createUserDto.permisos)
+      ? createUserDto.permisos
+      : [];
+    const permisosUnicos = this.unificarPermisos([
+      ...permisosPorRol,
+      ...permisosExtras,
+    ]);
+
+    const payload = {
+      ...createUserDto,
+      roles: rolesNormalizados,
+      permisos: permisosUnicos,
+    };
+
+    const newUser = new this.userModel(payload);
     return await newUser.save();
   }
 
@@ -30,7 +65,7 @@ export class UsersService {
     const users = await this.userModel
       .find()
       .select(
-        'name lastName email telefono rut roles permisos isActive foto createdAt updatedAt',
+        'nombre apellido correo telefono rut roles permisos activo foto creado_en actualizado_en',
       )
       .lean()
       .exec();
@@ -39,17 +74,17 @@ export class UsersService {
       const user = doc as any;
       return {
         id: user._id?.toString?.() ?? user.id,
-        name: user.name,
-        lastName: user.lastName,
-        email: user.email,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        correo: user.correo,
         telefono: user.telefono ?? null,
         rut: user.rut,
         roles: user.roles ?? [],
         permisos: user.permisos ?? [],
-        isActive: user.isActive,
+        activo: user.activo,
         foto: user.foto ?? null,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
+        creado_en: user.creado_en,
+        actualizado_en: user.actualizado_en,
       };
     });
   }
@@ -61,7 +96,7 @@ export class UsersService {
     const user = await this.userModel
       .findById(id)
       .select(
-        'name lastName email telefono rut roles permisos isActive foto createdAt updatedAt',
+        'nombre apellido correo telefono rut roles permisos activo foto creado_en actualizado_en',
       )
       .lean()
       .exec();
@@ -71,17 +106,17 @@ export class UsersService {
     const normalized = user as any;
     return {
       id: normalized._id?.toString?.() ?? normalized.id,
-      name: normalized.name,
-      lastName: normalized.lastName,
-      email: normalized.email,
+      nombre: normalized.nombre,
+      apellido: normalized.apellido,
+      correo: normalized.correo,
       telefono: normalized.telefono ?? null,
       rut: normalized.rut,
       roles: normalized.roles ?? [],
       permisos: normalized.permisos ?? [],
-      isActive: normalized.isActive,
+      activo: normalized.activo,
       foto: normalized.foto ?? null,
-      createdAt: normalized.createdAt,
-      updatedAt: normalized.updatedAt,
+      creado_en: normalized.creado_en,
+      actualizado_en: normalized.actualizado_en,
     };
   }
 
@@ -91,12 +126,12 @@ export class UsersService {
   async findProfileDetails(id: string): Promise<{
     biografia: string | null;
     preferencias: any | null;
-    email: string;
+    correo: string;
     telefono: string | null;
   }> {
     const user = await this.userModel
       .findById(id)
-      .select('biografia preferencias email telefono')
+      .select('biografia preferencias correo telefono')
       .lean()
       .exec();
 
@@ -104,8 +139,8 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    const { biografia = null, preferencias = null, email, telefono = null } = (user as any) || {};
-    return { biografia, preferencias, email, telefono };
+    const { biografia = null, preferencias = null, correo, telefono = null } = (user as any) || {};
+    return { biografia, preferencias, correo, telefono };
   }
 
   /**
@@ -114,35 +149,35 @@ export class UsersService {
   async updateProfileDetails(
     id: string,
     payload: {
-      name?: string;
-      lastName?: string;
+      nombre?: string;
+      apellido?: string;
       biografia?: string;
       foto?: string | null;
       preferencias?: Record<string, any> | null;
       telefono?: string | null;
-      email?: string;
-      passwordHash?: string;
+      correo?: string;
+      contrasenaHash?: string;
     },
   ): Promise<{
     biografia: string | null;
     foto: string | null;
     preferencias: any | null;
-    email: string;
+    correo: string;
     telefono: string | null;
   }> {
     const $set: any = {};
-    if (typeof payload.name !== 'undefined') $set.name = payload.name;
-    if (typeof payload.lastName !== 'undefined') $set.lastName = payload.lastName;
+    if (typeof payload.nombre !== 'undefined') $set.nombre = payload.nombre;
+    if (typeof payload.apellido !== 'undefined') $set.apellido = payload.apellido;
     if (typeof payload.biografia !== 'undefined') $set.biografia = payload.biografia;
     if (typeof payload.foto !== 'undefined') $set.foto = payload.foto;
     if (typeof payload.preferencias !== 'undefined') $set.preferencias = payload.preferencias;
     if (typeof payload.telefono !== 'undefined') $set.telefono = payload.telefono;
-    if (typeof payload.email !== 'undefined') $set.email = payload.email;
-    if (typeof payload.passwordHash !== 'undefined') $set.password = payload.passwordHash;
+    if (typeof payload.correo !== 'undefined') $set.correo = payload.correo;
+    if (typeof payload.contrasenaHash !== 'undefined') $set.contrasena = payload.contrasenaHash;
 
     const updated = await this.userModel
       .findByIdAndUpdate(id, { $set }, { new: true })
-      .select('biografia foto preferencias email telefono')
+      .select('biografia foto preferencias correo telefono')
       .lean()
       .exec();
 
@@ -154,13 +189,13 @@ export class UsersService {
       biografia: (updated as any)?.biografia ?? null,
       foto: (updated as any)?.foto ?? null,
       preferencias: (updated as any)?.preferencias ?? null,
-      email: (updated as any)?.email,
+      correo: (updated as any)?.correo,
       telefono: (updated as any)?.telefono ?? null,
     };
   }
 
   /**
-   * Obtener usuario con password (uso interno)
+   * Obtener usuario con contraseña (uso interno)
    */
   async findByIdWithPassword(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
@@ -172,7 +207,7 @@ export class UsersService {
   async findPublicProfile(id: string): Promise<PublicUserProfileDto> {
     const user = await this.userModel
       .findById(id)
-      .select('name lastName email rut isActive createdAt updatedAt')
+      .select('nombre apellido correo rut activo creado_en actualizado_en')
       .lean()
       .exec();
 
@@ -180,25 +215,25 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
 
-    const { _id, name, lastName, email, rut, isActive, createdAt, updatedAt } = user as any;
+    const { _id, nombre, apellido, correo, rut, activo, creado_en, actualizado_en } = user as any;
 
     return {
       id: _id?.toString?.() ?? String(_id),
-      name,
-      lastName,
-      email,
+      nombre,
+      apellido,
+      correo,
       rut,
-      isActive,
-      createdAt,
-      updatedAt,
+      activo,
+      creado_en,
+      actualizado_en,
     } as PublicUserProfileDto;
   }
 
   /**
    * 🔍 Buscar usuario por correo (usado por AuthService)
    */
-  async findByEmail(email: string): Promise<User | null> {
-    return await this.userModel.findOne({ email }).exec();
+  async findByCorreo(correo: string): Promise<User | null> {
+    return await this.userModel.findOne({ correo }).exec();
   }
 
   /**
@@ -239,5 +274,82 @@ export class UsersService {
 
     await this.userModel.findByIdAndDelete(id).exec();
     return { message: 'Usuario eliminado correctamente' };
+  }
+
+  /**
+   * Calcula los permisos asociados a un conjunto de roles
+   */
+  private async obtenerPermisosDesdeRoles(roles: string[]): Promise<string[]> {
+    if (!Array.isArray(roles) || roles.length === 0) {
+      return [];
+    }
+
+    const normalizados = roles
+      .map((rol) => rol?.trim())
+      .filter((rol): rol is string => Boolean(rol))
+      .map((rol) => rol.toLowerCase());
+
+    if (normalizados.length === 0) {
+      return [];
+    }
+
+    const rolesDocs = await this.roleModel
+      .find({ codigo: { $in: normalizados } })
+      .select('_id codigo')
+      .lean();
+
+    if (rolesDocs.length === 0) {
+      return [];
+    }
+
+    const roleIds = rolesDocs.map((rol) => rol._id);
+
+    const relacionesModernas = await this.rolePermisoModel
+      .find({ roleId: { $in: roleIds } })
+      .select('permisoId')
+      .lean();
+
+    const permisoIds = relacionesModernas
+      .map((rel) => rel.permisoId as Types.ObjectId | undefined)
+      .filter((id): id is Types.ObjectId => Boolean(id));
+
+    if (permisoIds.length > 0) {
+      const permisosDocs = await this.permisoModel
+        .find({ _id: { $in: permisoIds } })
+        .select('codigo')
+        .lean();
+
+      return this.unificarPermisos(
+        permisosDocs
+          .map((permiso) => permiso.codigo)
+          .filter((codigo): codigo is string => Boolean(codigo)),
+      );
+    }
+
+    // Compatibilidad con estructura anterior (rol_codigo + permisos[])
+    const legacyRelations = await this.rolePermisoModel.collection
+      .find({ rol_codigo: { $in: normalizados } })
+      .project({ rol_codigo: 1, permisos: 1 })
+      .toArray();
+
+    if (legacyRelations.length === 0) {
+      return [];
+    }
+
+    return this.unificarPermisos(
+      legacyRelations.flatMap((rel) =>
+        Array.isArray(rel.permisos) ? rel.permisos : [],
+      ),
+    );
+  }
+
+  private unificarPermisos(permisos: string[]): string[] {
+    return Array.from(
+      new Set(
+        permisos
+          .map((permiso) => permiso?.trim())
+          .filter((permiso): permiso is string => Boolean(permiso)),
+      ),
+    );
   }
 }

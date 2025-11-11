@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type PermisoDocument = Permiso & Document;
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'permisos', timestamps: true })
 export class Permiso {
   @Prop({ required: true, unique: true })
   codigo: string; // Ej: crear_producto, ver_dashboard

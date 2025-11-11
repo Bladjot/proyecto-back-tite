@@ -53,9 +53,9 @@ async function bootstrap() {
       - ** /auth/me (Grupo 6)
       - ** /auth/can-access (Grupo 1)
       ### Notas para los demas grupos:
-      GET /api/auth/me: requiere JWT. Usa header Authorization: Bearer <token>; devuelve id, name, lastName, email, roles, permisos del usuario autenticado.
+      GET /api/auth/me: requiere JWT. Usa header Authorization: Bearer <token>; devuelve id, nombre, apellido, correo, roles, permisos del usuario autenticado.
       GET /api/auth/can-access: requiere el mismo header y un query page=<codigo_permiso>. Responde { page, hasAccess } para confirmar si el permiso está en la lista del usuario.
-      GET /api/users/public/:id: público; solo sustituyes :id por el ObjectId del usuario. Entrega un perfil básico (id, name, lastName, email, isActive, timestamps) sin datos sensibles.
+      GET /api/users/public/:id: público; solo sustituyes :id por el ObjectId del usuario. Entrega un perfil básico (id, nombre, apellido, correo, activo, timestamps) sin datos sensibles.
     `)
     .setVersion('1.0')
     .addBearerAuth() // Permite enviar el token JWT desde Swagger

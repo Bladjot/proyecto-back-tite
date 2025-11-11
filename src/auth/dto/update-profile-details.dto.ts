@@ -5,12 +5,12 @@ export class UpdateProfileDetailsDto {
   @ApiPropertyOptional({ description: 'Nombre del usuario', example: 'María' })
   @IsOptional()
   @IsString()
-  name?: string;
+  nombre?: string;
 
   @ApiPropertyOptional({ description: 'Apellido del usuario', example: 'García' })
   @IsOptional()
   @IsString()
-  lastName?: string;
+  apellido?: string;
 
   @ApiPropertyOptional({ description: 'Biografía del usuario' })
   @IsOptional()
@@ -20,7 +20,7 @@ export class UpdateProfileDetailsDto {
   @ApiPropertyOptional({ description: 'Correo electrónico del usuario' })
   @IsOptional()
   @IsEmail()
-  email?: string;
+  correo?: string;
 
   @ApiPropertyOptional({ description: 'Teléfono de contacto del usuario' })
   @IsOptional()
@@ -40,7 +40,7 @@ export class UpdateProfileDetailsDto {
   })
   @IsOptional()
   @IsString()
-  currentPassword?: string;
+  contrasenaActual?: string;
 
   @ApiPropertyOptional({
     description: 'Nueva contraseña (mínimo 6 caracteres)',
@@ -48,7 +48,7 @@ export class UpdateProfileDetailsDto {
   @IsOptional()
   @MinLength(6)
   @IsString()
-  newPassword?: string;
+  nuevaContrasena?: string;
 }
 
 export class UpdateProfileDetailsWithPhotoDto extends UpdateProfileDetailsDto {
