@@ -49,14 +49,13 @@ export class MailService {
       'http://localhost:5173';
   }
 
-  private ensureTransporter(): asserts this is this & {
-    transporter: nodemailer.Transporter;
-  } {
+  private getTransporter(): nodemailer.Transporter {
     if (!this.transporter) {
       throw new InternalServerErrorException(
         'El servicio de correo no está configurado. Contacta a un administrador.',
       );
     }
+    return this.transporter;
   }
 
   private buildResetPasswordUrl(token: string): string {
@@ -69,8 +68,7 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(payload: PasswordResetPayload): Promise<void> {
-    this.ensureTransporter();
-
+    const transporter = this.getTransporter();
     const resetUrl = this.buildResetPasswordUrl(payload.token);
     const greetingName = payload.nombre?.trim() || 'usuario';
 
@@ -101,7 +99,7 @@ export class MailService {
     `;
 
     try {
-      await this.transporter.sendMail({
+      await transporter.sendMail({
         from: this.fromAddress,
         to: payload.to,
         subject,
