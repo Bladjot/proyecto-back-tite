@@ -8,6 +8,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleStrategy } from './strategies/google.strategy'; // 👈 nuevo
 import { UsersModule } from '../users/users.module';
 import { HttpModule } from '@nestjs/axios';
+import { MailService } from '../common/mail/mail.service';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { HttpModule } from '@nestjs/axios';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy], // 👈 agregamos GoogleStrategy
+  providers: [AuthService, JwtStrategy, GoogleStrategy, MailService], // 👈 agregamos GoogleStrategy y MailService
   exports: [AuthService],
 })
 export class AuthModule {}

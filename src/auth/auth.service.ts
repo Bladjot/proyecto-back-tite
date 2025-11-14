@@ -15,6 +15,13 @@ import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import { MailService } from '../common/mail/mail.service';
+
+type PasswordResetPayload = {
+  token?: string;
+  correo?: string;
+  nuevaContrasena: string;
+};
 
 @Injectable()
 export class AuthService {
@@ -24,6 +31,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
+    private readonly mailService: MailService,
   ) {
     this.recaptchaSecret = this.configService.get<string>(
       'RECAPTCHA_V2_SECRET_KEY',
@@ -327,8 +335,6 @@ export class AuthService {
       rut: plainUser.rut,
     };
 
-    const redirectTo = this.resolvePostLoginRedirect(plainUser.roles);
-
     return {
       user: {
         id: userId,
@@ -341,7 +347,7 @@ export class AuthService {
         activo: plainUser.activo,
       },
       access_token: this.jwtService.sign(payload),
-      redirectTo,
+      redirectTo: '/home',
     };
   }
 
@@ -351,6 +357,96 @@ export class AuthService {
   async checkCorreo(correo: string) {
     const user = await this.usersService.findByCorreo(correo);
     return !!user;
+  }
+
+  /**
+   * 📧 Generar token y enviar correo de recuperación
+   */
+  async requestPasswordReset(correo: string) {
+    const user = await this.usersService.findByCorreo(correo);
+    if (!user) {
+      throw new NotFoundException('El correo no está registrado');
+    }
+
+    const expiresIn = this.configService.get<string>(
+      'PASSWORD_RESET_TOKEN_EXPIRES_IN',
+      '30m',
+    );
+
+    const token = this.jwtService.sign(
+      {
+        sub: user._id?.toString(),
+        correo: user.correo,
+        action: 'password-reset',
+      },
+      { expiresIn },
+    );
+
+    await this.mailService.sendPasswordResetEmail({
+      to: user.correo,
+      nombre: (user as any)?.nombre,
+      token,
+    });
+
+    return {
+      message: 'Email enviado con instrucciones para resetear la contraseña',
+    };
+  }
+
+  /**
+   * 🔐 Restablecer contraseña mediante token o correo
+   */
+  async resetPassword({
+    token,
+    correo,
+    nuevaContrasena,
+  }: PasswordResetPayload) {
+    if (!nuevaContrasena || nuevaContrasena.trim().length < 6) {
+      throw new BadRequestException(
+        'Debes enviar una nueva contraseña de al menos 6 caracteres.',
+      );
+    }
+
+    if (!token && !correo) {
+      throw new BadRequestException(
+        'Debes proporcionar el token recibido por correo o el correo registrado.',
+      );
+    }
+
+    if (token) {
+      let payload: { sub?: string; correo?: string; action?: string };
+      try {
+        payload = this.jwtService.verify(token);
+      } catch (error) {
+        throw new BadRequestException(
+          'El token de recuperación es inválido o expiró.',
+        );
+      }
+
+      if (payload?.action !== 'password-reset' || !payload?.sub) {
+        throw new BadRequestException('El token de recuperación no es válido.');
+      }
+
+      const user =
+        (await this.usersService.findByIdWithPassword(
+          payload.sub.toString(),
+        )) ||
+        (payload.correo
+          ? await this.usersService.findByCorreo(payload.correo)
+          : null);
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      const hashed = await bcrypt.hash(nuevaContrasena, 10);
+      user.contrasena = hashed;
+      await user.save();
+
+      return { message: 'Contraseña actualizada correctamente' };
+    }
+
+    return this.actualizarContrasena(correo as string, nuevaContrasena);
   }
 
   /**
