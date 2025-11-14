@@ -18,6 +18,8 @@ import { Express } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { UpdateProfileDetailsDto, UpdateProfileDetailsWithPhotoDto } from './dto/update-profile-details.dto';
@@ -226,34 +228,20 @@ export class AuthController {
   // 📩 OLVIDÉ CONTRASEÑA
   @Post('forgot-password')
   @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña' })
-  async forgotPassword(@Body('correo') correo: string) {
-    const user = await this.authService.findByCorreo(correo);
-
-    if (!user) {
-      throw new NotFoundException('El correo no está registrado');
-    }
-
-    // Aquí normalmente generas token y envías email
-    return {
-      message: 'Email enviado con instrucciones para resetear la contraseña',
-    };
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.requestPasswordReset(forgotPasswordDto.correo);
   }
 
   // 🔒 RESETEAR CONTRASEÑA
   @Post('reset-password')
   @ApiOperation({ summary: 'Restablecer contraseña mediante token o correo' })
-  async resetPassword(
-    @Body('correo') correo: string,
-    @Body('nuevaContrasena') nuevaContrasena: string,
-  ) {
-    const user = await this.authService.findByCorreo(correo);
-
-    if (!user) {
-      throw new NotFoundException('El correo no está registrado');
+  async resetPassword(@Body() body: ResetPasswordDto) {
+    if (!body.token && !body.correo) {
+      throw new BadRequestException(
+        'Debes proporcionar el token recibido por correo o el correo registrado.',
+      );
     }
 
-    await this.authService.actualizarContrasena(correo, nuevaContrasena);
-
-    return { message: 'Contraseña actualizada correctamente' };
+    return this.authService.resetPassword(body);
   }
 }
