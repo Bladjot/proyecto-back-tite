@@ -9,12 +9,13 @@ import {
   UseInterceptors,
   UploadedFile,
   Request,
+  Res,
   NotFoundException,
   BadRequestException,
   Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Express } from 'express';
+import { Express, Response } from 'express';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
@@ -221,8 +222,14 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Callback de autenticación Google' })
-  async googleAuthRedirect(@Request() req) {
-    return this.authService.googleLogin(req.user);
+  async googleAuthRedirect(@Request() req, @Res() res: Response) {
+    const result = await this.authService.googleLogin(req.user);
+
+    if (result.redirectTo) {
+      return res.redirect(result.redirectTo);
+    }
+
+    return res.json(result);
   }
 
   // 📩 OLVIDÉ CONTRASEÑA

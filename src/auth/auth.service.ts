@@ -26,6 +26,7 @@ type PasswordResetPayload = {
 @Injectable()
 export class AuthService {
   private recaptchaSecret: string;
+  private readonly frontendBaseUrl: string;
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -36,6 +37,10 @@ export class AuthService {
     this.recaptchaSecret = this.configService.get<string>(
       'RECAPTCHA_V2_SECRET_KEY',
     );
+    this.frontendBaseUrl =
+      this.configService.get<string>('FRONTEND_BASE_URL') ||
+      this.configService.get<string>('FRONTEND_URL') ||
+      'http://localhost:5173';
   }
   private async validateRecaptcha(token: string): Promise<boolean> {
     if (!this.recaptchaSecret) {
@@ -297,31 +302,32 @@ export class AuthService {
 
     let user = await this.usersService.findByCorreo(googleUser.correo);
 
-    // Crear si no existe
+    // Si no existe, indicamos que debe completar registro y devolvemos datos base
     if (!user) {
-      const inferredRut =
-        googleUser.rut ||
-        googleUser?.profile?.rut ||
-        googleUser?.profile?.rutNumber ||
-        googleUser?.rutNumber;
-
-      if (!inferredRut) {
-        throw new BadRequestException(
-          'No se pudo obtener el RUT desde la cuenta de Google. Completa tu registro manualmente.',
-        );
+      const params = new URLSearchParams();
+      params.set('provider', 'google');
+      params.set('correo', googleUser.correo);
+      params.set('nombre', googleUser.nombre || 'Google');
+      params.set('apellido', googleUser.apellido || 'User');
+      if (googleUser.googleId || googleUser.id) {
+        params.set('googleId', googleUser.googleId || googleUser.id);
+      }
+      if (googleUser.picture) {
+        params.set('picture', googleUser.picture);
       }
 
-      const createUserDto: CreateUserDto = {
-        nombre: googleUser.nombre || 'Google',
-        apellido: googleUser.apellido || 'User',
-        rut: inferredRut,
-        correo: googleUser.correo,
-        contrasena: await bcrypt.hash('google-auth', 10),
-        roles: ['cliente'],
-        permisos: [],
-        activo: true,
+      return {
+        requiresRegistration: true,
+        provider: 'google',
+        redirectTo: `${this.frontendBaseUrl.replace(/\/+$/, '')}/register?${params.toString()}`,
+        profile: {
+          correo: googleUser.correo,
+          nombre: googleUser.nombre || 'Google',
+          apellido: googleUser.apellido || 'User',
+          googleId: googleUser.googleId || googleUser.id || null,
+          picture: googleUser.picture || null,
+        },
       };
-      user = await this.usersService.create(createUserDto);
     }
 
     const plainUser = user.toObject ? user.toObject() : user;
@@ -335,7 +341,13 @@ export class AuthService {
       rut: plainUser.rut,
     };
 
+    const accessToken = this.jwtService.sign(payload);
+
     return {
+      requiresRegistration: false,
+      redirectTo: `${this.frontendBaseUrl.replace(/\/+$/, '')}/home?token=${encodeURIComponent(
+        accessToken,
+      )}`,
       user: {
         id: userId,
         correo: plainUser.correo,
@@ -346,8 +358,7 @@ export class AuthService {
         permisos: plainUser.permisos || [],
         activo: plainUser.activo,
       },
-      access_token: this.jwtService.sign(payload),
-      redirectTo: '/home',
+      access_token: accessToken,
     };
   }
 
