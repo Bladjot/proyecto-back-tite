@@ -9,6 +9,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
+import { validateRut } from '../common/utils/rut.util';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -145,13 +146,17 @@ export class AuthService {
     if (!isRecaptchaValid) {
       throw new BadRequestException('Falló la verificación de reCAPTCHA');
     }
+    const rutInfo = validateRut(registerDto.rut);
+    if (!rutInfo) {
+      throw new BadRequestException('El RUT ingresado no es válido o el dígito verificador no corresponde.');
+    }
     const existing = await this.usersService.findByCorreo(registerDto.correo);
     const hashed = await bcrypt.hash(registerDto.contrasena, 10);
 
     const createUserDto: CreateUserDto = {
       nombre: registerDto.nombre,
       apellido: registerDto.apellido,
-      rut: registerDto.rut,
+      rut: rutInfo.normalized,
       correo: registerDto.correo,
       contrasena: hashed,
       roles: ['cliente'],

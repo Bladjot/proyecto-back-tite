@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
@@ -8,6 +8,9 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, {
+    message: 'El nombre solo puede contener letras y espacios.',
+  })
   nombre: string;
 
   @ApiProperty({
@@ -16,6 +19,9 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsString()
+  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, {
+    message: 'El apellido solo puede contener letras y espacios.',
+  })
   apellido: string;
 
   @ApiProperty({

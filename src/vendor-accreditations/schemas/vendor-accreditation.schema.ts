@@ -15,8 +15,8 @@ export class VendorAccreditation extends Document {
   @Prop({ required: true })
   telefono_contacto: string;
 
-  @Prop({ required: true })
-  rut_empresa: string;
+  @Prop({ required: false })
+  rut_empresa?: string;
 
   @Prop({
     type: String,

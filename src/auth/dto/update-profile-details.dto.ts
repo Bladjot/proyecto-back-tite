@@ -1,15 +1,21 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class UpdateProfileDetailsDto {
   @ApiPropertyOptional({ description: 'Nombre del usuario', example: 'María' })
   @IsOptional()
   @IsString()
+  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, {
+    message: 'El nombre solo puede contener letras y espacios.',
+  })
   nombre?: string;
 
   @ApiPropertyOptional({ description: 'Apellido del usuario', example: 'García' })
   @IsOptional()
   @IsString()
+  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, {
+    message: 'El apellido solo puede contener letras y espacios.',
+  })
   apellido?: string;
 
   @ApiPropertyOptional({ description: 'Biografía del usuario' })

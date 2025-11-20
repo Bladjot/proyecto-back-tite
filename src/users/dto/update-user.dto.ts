@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateUserDto } from './create-user.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @ApiPropertyOptional({
@@ -10,6 +10,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsString()
+  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, {
+    message: 'El nombre solo puede contener letras y espacios.',
+  })
   nombre?: string;
 
   @ApiPropertyOptional({
@@ -18,6 +21,9 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   })
   @IsOptional()
   @IsString()
+  @Matches(/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/, {
+    message: 'El apellido solo puede contener letras y espacios.',
+  })
   apellido?: string;
 
   @ApiPropertyOptional({

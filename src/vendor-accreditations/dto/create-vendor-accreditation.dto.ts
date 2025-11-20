@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateVendorAccreditationDto {
   @ApiProperty({ description: 'Nombre de la tienda', example: 'PulgaShop Store' })
@@ -12,8 +12,8 @@ export class CreateVendorAccreditationDto {
   @IsNotEmpty()
   telefono_contacto: string;
 
-  @ApiProperty({ description: 'RUT de la empresa', example: '76.123.456-7' })
+  @ApiPropertyOptional({ description: 'RUT de la empresa', example: '76.123.456-7' })
   @IsString()
-  @IsNotEmpty()
-  rut_empresa: string;
+  @IsOptional()
+  rut_empresa?: string;
 }
