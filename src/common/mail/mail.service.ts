@@ -14,16 +14,17 @@ export class MailService {
   private readonly transporter: nodemailer.Transporter | null;
   private readonly fromAddress: string;
   private readonly frontendBaseUrl: string;
+  private readonly missingConfigMessage: string | null;
 
   constructor(private readonly configService: ConfigService) {
-    const host = configService.get<string>('SMTP_HOST');
+    const host = configService.get<string>('SMTP_HOST') || 'smtp.gmail.com';
     const port = Number(configService.get<string>('SMTP_PORT') ?? 587);
     const secure =
       String(configService.get<string>('SMTP_SECURE') ?? 'false').toLowerCase() === 'true';
     const user = configService.get<string>('SMTP_USER');
     const pass = configService.get<string>('SMTP_PASSWORD');
 
-    if (host && user && pass) {
+    if (user && pass) {
       this.transporter = nodemailer.createTransport({
         host,
         port,
@@ -33,9 +34,19 @@ export class MailService {
           pass,
         },
       });
+      this.missingConfigMessage = null;
     } else {
+      const missingEnvVars = [
+        !user ? 'SMTP_USER' : null,
+        !pass ? 'SMTP_PASSWORD' : null,
+      ].filter(Boolean) as string[];
+
+      this.missingConfigMessage = missingEnvVars.length
+        ? `Faltan las variables de entorno: ${missingEnvVars.join(', ')}`
+        : 'Configuración SMTP incompleta.';
+
       this.logger.warn(
-        'Configuración SMTP incompleta. El envío de correos está deshabilitado hasta que se definan las variables SMTP_HOST, SMTP_USER y SMTP_PASSWORD.',
+        `${this.missingConfigMessage} El envío de correos está deshabilitado hasta que se definan las variables SMTP_HOST, SMTP_USER y SMTP_PASSWORD.`,
       );
       this.transporter = null;
     }
@@ -52,7 +63,8 @@ export class MailService {
   private getTransporter(): nodemailer.Transporter {
     if (!this.transporter) {
       throw new InternalServerErrorException(
-        'El servicio de correo no está configurado. Contacta a un administrador.',
+        this.missingConfigMessage ||
+          'El servicio de correo no está configurado. Contacta a un administrador.',
       );
     }
     return this.transporter;
