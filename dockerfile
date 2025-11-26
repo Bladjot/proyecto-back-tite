@@ -4,8 +4,8 @@ WORKDIR /app
 # Instala dependencias y construye el proyecto
 FROM base AS build
 RUN corepack enable
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+RUN pnpm install
 COPY . .
 RUN pnpm build
 # Conserva solo dependencias de producción
